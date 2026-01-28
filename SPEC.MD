@@ -1,5 +1,5 @@
 # Utilita na vyplneni pracovniho vykazu
-Na zaklade numbers souboru -> `vykaz_mmyy.xlsx` potrebuji vytvorit webovou aplikaci na automaticke vyplnovani podle zadanych parametru a generovani PDF/XSLX.
+Na zaklade numbers souboru -> `vykaz_mmyy.xlsx` potrebuji vytvorit webovou aplikaci na automaticke vyplnovani pracovniho vykazu v XLSX formatu podle zadanych parametru a generovani PDF/XSLX. Mas volnost pouziti knihoven, UI muzes zkusit udelat v ShadCn
 
 ## Aplikace by mela umet
     - [ ] Uzivatelem navolit jmeno a prijmeni a pamatovat pro priste
