@@ -12,13 +12,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { exportToExcel, exportToPdfViaServer, getFilename } from '@/lib/export'
-import { FileSpreadsheet, FileText, Loader2 } from 'lucide-react'
+import { exportToExcel, getFilename } from '@/lib/export'
+import { FileSpreadsheet } from 'lucide-react'
 
 export function ExportButtons() {
   const { currentMonth, settings, previousMonthsNV, setPreviousMonthsNV } = useTimesheetStore()
-  const [pdfLoading, setPdfLoading] = useState(false)
-  const [pdfError, setPdfError] = useState<string | null>(null)
   const [showNVPrompt, setShowNVPrompt] = useState(false)
   const [nvBalance, setNvBalance] = useState(0)
 
@@ -67,33 +65,6 @@ export function ExportButtons() {
     calculateAndPromptNV()
   }
 
-  const handleExportPdf = async () => {
-    if (!currentMonth) return
-
-    setPdfLoading(true)
-    setPdfError(null)
-
-    try {
-      const blob = await exportToPdfViaServer(currentMonth, settings, previousMonthsNV)
-      const filename = getFilename(settings, currentMonth, 'pdf')
-
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = filename
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
-
-      calculateAndPromptNV()
-    } catch (error) {
-      setPdfError(error instanceof Error ? error.message : 'Chyba při exportu PDF')
-    } finally {
-      setPdfLoading(false)
-    }
-  }
-
   if (!currentMonth) {
     return null
   }
@@ -103,37 +74,11 @@ export function ExportButtons() {
       <CardHeader>
         <CardTitle>Export</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex gap-4">
-          <Button onClick={handleExportXlsx} className="flex-1">
-            <FileSpreadsheet className="mr-2 h-4 w-4" />
-            Export XLSX
-          </Button>
-          <Button
-            onClick={handleExportPdf}
-            variant="secondary"
-            className="flex-1"
-            disabled={pdfLoading}
-          >
-            {pdfLoading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <FileText className="mr-2 h-4 w-4" />
-            )}
-            {pdfLoading ? 'Generuji PDF...' : 'Export PDF'}
-          </Button>
-        </div>
-        {pdfError && (
-          <p className="text-sm text-red-600">
-            {pdfError}
-            {pdfError.includes('LibreOffice') && (
-              <span className="block mt-1 text-xs text-muted-foreground">
-                Pro export PDF je potřeba nainstalovat LibreOffice na serveru.
-              </span>
-            )}
-          </p>
-        )}
-
+      <CardContent>
+        <Button onClick={handleExportXlsx} className="w-full">
+          <FileSpreadsheet className="mr-2 h-4 w-4" />
+          Export XLSX
+        </Button>
       </CardContent>
 
       <Dialog open={showNVPrompt} onOpenChange={setShowNVPrompt}>
