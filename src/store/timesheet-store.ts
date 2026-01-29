@@ -156,8 +156,8 @@ export const useTimesheetStore = create<TimesheetState>()(
 
               // If interruption type is set (not regular work), adjust worked hours
               if (updates.interruptionType !== undefined && updates.interruptionType !== '') {
-                // For full day interruptions (except NV which tracks hours separately)
-                if (['D', 'N', 'Oš', 'M', 'RD', 'NP', 'Sv'].includes(updates.interruptionType)) {
+                // For full day interruptions
+                if (['D', 'N', 'Oš', 'M', 'RD', 'NP', 'Sv', 'NV'].includes(updates.interruptionType)) {
                   if (updates.workedHours === undefined) {
                     updated.workedHours = 0
                   }
@@ -166,18 +166,28 @@ export const useTimesheetStore = create<TimesheetState>()(
                 if (updates.interruptionType === 'D' && updates.vacationHours === undefined) {
                   updated.vacationHours = Math.max(0, standardHours - updated.workedHours)
                 }
+                // Auto-set 8 hours of NV when NV type is selected
+                if (updates.interruptionType === 'NV') {
+                  updated.compensatoryLeaveHours = DEFAULT_WORK_HOURS
+                }
               } else if (updates.interruptionType === '' && !day.isWeekend && !day.isHoliday) {
                 // Reset to standard hours if clearing interruption
                 if (updates.workedHours === undefined) {
                   updated.workedHours = standardHours
                 }
-                // Reset vacation hours when clearing interruption
+                // Reset vacation and NV hours when clearing interruption
                 updated.vacationHours = 0
+                updated.compensatoryLeaveHours = 0
               }
 
               // Reset vacation hours when changing from vacation to another type
               if (updates.interruptionType !== undefined && updates.interruptionType !== 'D' && day.interruptionType === 'D') {
                 updated.vacationHours = 0
+              }
+
+              // Reset compensatory leave hours when changing from NV to another type
+              if (updates.interruptionType !== undefined && updates.interruptionType !== 'NV' && day.interruptionType === 'NV') {
+                updated.compensatoryLeaveHours = 0
               }
 
               // Auto-recalculate vacation hours when worked hours change during vacation

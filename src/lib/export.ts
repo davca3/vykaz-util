@@ -40,6 +40,9 @@ export async function exportToExcel(
   const workbook = new ExcelJS.Workbook()
   await workbook.xlsx.load(arrayBuffer)
 
+  // Force formula recalculation when file is opened
+  workbook.calcProperties = { fullCalcOnLoad: true }
+
   const sheet = workbook.worksheets[0]
 
   // Fill employee info (Row 2)

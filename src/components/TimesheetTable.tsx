@@ -228,7 +228,7 @@ export function TimesheetTable() {
                             compensatoryLeaveHours: parseFloat(e.target.value) || 0,
                           })
                         }
-                        disabled={isDisabled}
+                        disabled={isDisabled || day.interruptionType === 'NV'}
                         className="w-full min-w-[3.5rem] h-7 text-center text-xs px-1"
                       />
                     </td>
