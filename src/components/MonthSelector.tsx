@@ -8,10 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 const MONTHS = [
   'Leden', 'Únor', 'Březen', 'Duben', 'Květen', 'Červen',
@@ -21,79 +20,83 @@ const MONTHS = [
 export function MonthSelector() {
   const { initializeMonth, currentMonth } = useTimesheetStore()
   const now = new Date()
-  const [selectedYear, setSelectedYear] = useState(now.getFullYear())
-  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1)
 
   useEffect(() => {
-    // Initialize with current month on first load
     if (!currentMonth) {
-      initializeMonth(selectedYear, selectedMonth)
+      initializeMonth(now.getFullYear(), now.getMonth() + 1)
     }
   }, [])
-
-  const handleLoadMonth = () => {
-    initializeMonth(selectedYear, selectedMonth)
-  }
 
   const years = []
   for (let y = now.getFullYear() - 2; y <= now.getFullYear() + 1; y++) {
     years.push(y)
   }
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Období výkazu</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Měsíc</Label>
-            <Select
-              value={selectedMonth.toString()}
-              onValueChange={(v) => setSelectedMonth(parseInt(v))}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {MONTHS.map((month, idx) => (
-                  <SelectItem key={idx} value={(idx + 1).toString()}>
-                    {month}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Rok</Label>
-            <Select
-              value={selectedYear.toString()}
-              onValueChange={(v) => setSelectedYear(parseInt(v))}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {years.map((year) => (
-                  <SelectItem key={year} value={year.toString()}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <Button onClick={handleLoadMonth} className="w-full">
-          Načíst období
-        </Button>
+  const handlePrevMonth = () => {
+    if (!currentMonth) return
+    let newMonth = currentMonth.month - 1
+    let newYear = currentMonth.year
+    if (newMonth < 1) {
+      newMonth = 12
+      newYear--
+    }
+    initializeMonth(newYear, newMonth)
+  }
 
-        {currentMonth && (
-          <p className="text-sm text-muted-foreground text-center">
-            Aktuálně: {MONTHS[currentMonth.month - 1]} {currentMonth.year}
-          </p>
-        )}
-      </CardContent>
-    </Card>
+  const handleNextMonth = () => {
+    if (!currentMonth) return
+    let newMonth = currentMonth.month + 1
+    let newYear = currentMonth.year
+    if (newMonth > 12) {
+      newMonth = 1
+      newYear++
+    }
+    initializeMonth(newYear, newMonth)
+  }
+
+  return (
+    <div className="flex items-center justify-center gap-2 py-2">
+      <Button variant="outline" size="icon" onClick={handlePrevMonth}>
+        <ChevronLeft className="h-4 w-4" />
+      </Button>
+
+      <div className="flex items-center gap-2">
+        <Select
+          value={currentMonth?.month.toString() ?? (now.getMonth() + 1).toString()}
+          onValueChange={(v) => initializeMonth(currentMonth?.year ?? now.getFullYear(), parseInt(v))}
+        >
+          <SelectTrigger className="w-32">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {MONTHS.map((month, idx) => (
+              <SelectItem key={idx} value={(idx + 1).toString()}>
+                {month}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={currentMonth?.year.toString() ?? now.getFullYear().toString()}
+          onValueChange={(v) => initializeMonth(parseInt(v), currentMonth?.month ?? now.getMonth() + 1)}
+        >
+          <SelectTrigger className="w-24">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {years.map((year) => (
+              <SelectItem key={year} value={year.toString()}>
+                {year}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Button variant="outline" size="icon" onClick={handleNextMonth}>
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+    </div>
   )
 }
