@@ -8,9 +8,24 @@ import { exportToExcel, exportToPdfViaServer, getFilename } from '@/lib/export'
 import { FileSpreadsheet, FileText, Loader2 } from 'lucide-react'
 
 export function ExportButtons() {
-  const { currentMonth, settings, previousMonthsNV } = useTimesheetStore()
+  const { currentMonth, settings, previousMonthsNV, setPreviousMonthsNV } = useTimesheetStore()
   const [pdfLoading, setPdfLoading] = useState(false)
   const [pdfError, setPdfError] = useState<string | null>(null)
+  const [showNVPrompt, setShowNVPrompt] = useState(false)
+  const [nvBalance, setNvBalance] = useState(0)
+
+  const calculateAndPromptNV = () => {
+    if (!currentMonth) return
+    const overtimeToNV = currentMonth.totalOvertimeHours - currentMonth.totalOvertimeToPayHours
+    const balance = previousMonthsNV + overtimeToNV - currentMonth.totalCompensatoryLeaveHours
+    setNvBalance(balance)
+    setShowNVPrompt(true)
+  }
+
+  const handleSaveNV = () => {
+    setPreviousMonthsNV(nvBalance)
+    setShowNVPrompt(false)
+  }
 
   const handleExportXlsx = async () => {
     if (!currentMonth) return
@@ -26,6 +41,8 @@ export function ExportButtons() {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
+
+    calculateAndPromptNV()
   }
 
   const handleExportPdf = async () => {
@@ -46,6 +63,8 @@ export function ExportButtons() {
       a.click()
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
+
+      calculateAndPromptNV()
     } catch (error) {
       setPdfError(error instanceof Error ? error.message : 'Chyba při exportu PDF')
     } finally {
@@ -91,6 +110,25 @@ export function ExportButtons() {
               </span>
             )}
           </p>
+        )}
+
+        {showNVPrompt && (
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-3">
+            <p className="text-sm font-medium">
+              Uložit zůstatek NV hodin pro příští měsíc?
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Nový zůstatek: <span className="font-bold">{nvBalance} hod</span>
+            </p>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={handleSaveNV}>
+                Ano, uložit
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setShowNVPrompt(false)}>
+                Ne
+              </Button>
+            </div>
+          </div>
         )}
       </CardContent>
     </Card>
