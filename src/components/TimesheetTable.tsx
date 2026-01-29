@@ -84,7 +84,7 @@ export function TimesheetTable() {
                 <th className="p-2 text-center border border-gray-300 text-xs bg-blue-50/50">Hodiny</th>
                 <th className="p-2 text-center border border-gray-300 text-xs bg-blue-50/50">Dov.</th>
                 {/* Přesčasy */}
-                <th className="p-2 text-center border border-gray-300 text-xs bg-orange-50/50">Přesčas</th>
+                <th className="p-2 text-center border border-gray-300 text-xs bg-orange-50/50">Na NV</th>
                 <th className="p-2 text-center border border-gray-300 text-xs bg-orange-50/50">K propl.</th>
                 <th className="p-2 text-center border border-gray-300 text-xs bg-orange-50/50">Čerp. NV</th>
                 {/* Propustky */}
@@ -194,12 +194,7 @@ export function TimesheetTable() {
                         min="0"
                         max="24"
                         step="0.5"
-                        value={day.overtimeHours || ''}
-                        onChange={(e) =>
-                          updateDayEntry(day.dayOfMonth, {
-                            overtimeHours: parseFloat(e.target.value) || 0,
-                          })
-                        }
+                        value={Math.max(0, day.overtimeHours - day.overtimeToPayHours) || ''}
                         disabled={isDisabled}
                         className="w-full min-w-[3.5rem] h-7 text-center text-xs px-1 bg-orange-50"
                         readOnly

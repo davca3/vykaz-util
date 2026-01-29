@@ -175,6 +175,11 @@ export const useTimesheetStore = create<TimesheetState>()(
               const totalHours = updates.workedHours ?? updated.workedHours
               updated.overtimeHours = Math.max(0, totalHours - standardHours)
 
+              // Ensure overtimeToPayHours doesn't exceed overtimeHours
+              if (updated.overtimeToPayHours > updated.overtimeHours) {
+                updated.overtimeToPayHours = updated.overtimeHours
+              }
+
               return updated
             }
             return day
