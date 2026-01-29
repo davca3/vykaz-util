@@ -100,6 +100,7 @@ export const useTimesheetStore = create<TimesheetState>()(
           const schedule = getScheduleForDay(dayOfWeek)
 
           const isWorkingDay = schedule.isWorkDay && !weekend && !holidayInfo.isHoliday
+          const workedHours = isWorkingDay ? schedule.hours : 0
 
           days.push({
             date,
@@ -111,8 +112,8 @@ export const useTimesheetStore = create<TimesheetState>()(
             interruptionType: holidayInfo.isHoliday && !weekend ? 'Sv' : '',
             startTime: schedule.startTime,
             scheduledHours: schedule.hours,
-            workedHours: isWorkingDay ? schedule.hours : 0,
-            overtimeHours: 0,
+            workedHours,
+            overtimeHours: Math.max(0, workedHours - DEFAULT_WORK_HOURS),
             overtimeToPayHours: 0,
             compensatoryLeaveHours: 0,
             vacationHours: 0,
@@ -184,9 +185,9 @@ export const useTimesheetStore = create<TimesheetState>()(
                 updated.vacationHours = Math.max(0, standardHours - updated.workedHours)
               }
 
-              // Auto-calculate overtime: hours over scheduled are overtime
+              // Auto-calculate overtime: hours over 8h base are overtime
               const totalHours = updates.workedHours ?? updated.workedHours
-              updated.overtimeHours = Math.max(0, totalHours - standardHours)
+              updated.overtimeHours = Math.max(0, totalHours - DEFAULT_WORK_HOURS)
 
               // Ensure overtimeToPayHours doesn't exceed overtimeHours
               if (updated.overtimeToPayHours > updated.overtimeHours) {
