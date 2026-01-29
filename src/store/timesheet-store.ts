@@ -148,11 +148,22 @@ export const useTimesheetStore = create<TimesheetState>()(
                     updated.workedHours = 0
                   }
                 }
+                // Pre-fill vacation hours when selecting vacation
+                if (updates.interruptionType === 'D' && updates.vacationHours === undefined) {
+                  updated.vacationHours = standardHours
+                }
               } else if (updates.interruptionType === '' && !day.isWeekend && !day.isHoliday) {
                 // Reset to standard hours if clearing interruption
                 if (updates.workedHours === undefined) {
                   updated.workedHours = standardHours
                 }
+                // Reset vacation hours when clearing interruption
+                updated.vacationHours = 0
+              }
+
+              // Reset vacation hours when changing from vacation to another type
+              if (updates.interruptionType !== undefined && updates.interruptionType !== 'D' && day.interruptionType === 'D') {
+                updated.vacationHours = 0
               }
 
               // Auto-calculate overtime: hours over standard are overtime
@@ -220,6 +231,26 @@ export const useTimesheetStore = create<TimesheetState>()(
         settings: state.settings,
         previousMonthsNV: state.previousMonthsNV,
       }),
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState as Partial<TimesheetState>
+        return {
+          ...currentState,
+          previousMonthsNV: persisted.previousMonthsNV ?? currentState.previousMonthsNV,
+          settings: {
+            ...currentState.settings,
+            ...persisted.settings,
+            // Deep merge workSchedule
+            workSchedule: {
+              ...currentState.settings.workSchedule,
+              ...persisted.settings?.workSchedule,
+              days: {
+                ...currentState.settings.workSchedule.days,
+                ...persisted.settings?.workSchedule?.days,
+              },
+            },
+          },
+        }
+      },
     }
   )
 )
