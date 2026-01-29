@@ -148,9 +148,9 @@ export const useTimesheetStore = create<TimesheetState>()(
                     updated.workedHours = 0
                   }
                 }
-                // Pre-fill vacation hours when selecting vacation
+                // Pre-fill vacation hours when selecting vacation (scheduledHours - workedHours)
                 if (updates.interruptionType === 'D' && updates.vacationHours === undefined) {
-                  updated.vacationHours = standardHours
+                  updated.vacationHours = Math.max(0, standardHours - updated.workedHours)
                 }
               } else if (updates.interruptionType === '' && !day.isWeekend && !day.isHoliday) {
                 // Reset to standard hours if clearing interruption
@@ -164,6 +164,11 @@ export const useTimesheetStore = create<TimesheetState>()(
               // Reset vacation hours when changing from vacation to another type
               if (updates.interruptionType !== undefined && updates.interruptionType !== 'D' && day.interruptionType === 'D') {
                 updated.vacationHours = 0
+              }
+
+              // Auto-recalculate vacation hours when worked hours change during vacation
+              if (updated.interruptionType === 'D' && updates.workedHours !== undefined && updates.vacationHours === undefined) {
+                updated.vacationHours = Math.max(0, standardHours - updated.workedHours)
               }
 
               // Auto-calculate overtime: hours over scheduled are overtime
