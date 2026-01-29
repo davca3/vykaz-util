@@ -17,28 +17,21 @@ export default function Home() {
         </h1>
 
         <Tabs defaultValue="timesheet" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="settings">Nastavení</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="timesheet">Výkaz</TabsTrigger>
-            <TabsTrigger value="export">Export</TabsTrigger>
+            <TabsTrigger value="settings">Nastavení</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="settings" className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <UserSettings />
-              <MonthSelector />
-            </div>
-            <WorkScheduleSettings />
-          </TabsContent>
-
           <TabsContent value="timesheet" className="space-y-6">
+            <MonthSelector />
             <TimesheetTable />
             <Summary />
+            <ExportButtons />
           </TabsContent>
 
-          <TabsContent value="export" className="space-y-6">
-            <Summary />
-            <ExportButtons />
+          <TabsContent value="settings" className="space-y-6">
+            <UserSettings />
+            <WorkScheduleSettings />
           </TabsContent>
         </Tabs>
       </div>
