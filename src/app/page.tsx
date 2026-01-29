@@ -29,9 +29,11 @@ export default function Home() {
             <ExportButtons />
           </TabsContent>
 
-          <TabsContent value="settings" className="space-y-6">
-            <UserSettings />
-            <WorkScheduleSettings />
+          <TabsContent value="settings">
+            <div className="grid md:grid-cols-2 gap-6">
+              <UserSettings />
+              <WorkScheduleSettings />
+            </div>
           </TabsContent>
         </Tabs>
       </div>

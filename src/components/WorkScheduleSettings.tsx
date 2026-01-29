@@ -4,7 +4,6 @@ import { useTimesheetStore } from '@/store/timesheet-store'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
 import { WorkSchedule, DaySchedule } from '@/types'
 
 const DAY_NAMES = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota']
@@ -88,24 +87,24 @@ export function WorkScheduleSettings() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Pracovní rozvrh</CardTitle>
+      <CardHeader className="pb-4">
+        <CardTitle className="text-lg">Pracovní rozvrh</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4">
         {/* Default values */}
-        <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
-          <div className="space-y-2">
-            <Label htmlFor="defaultStartTime">Výchozí začátek</Label>
+        <div className="flex items-end gap-4 p-3 bg-muted rounded-lg">
+          <div className="space-y-1">
+            <Label htmlFor="defaultStartTime" className="text-xs">Začátek</Label>
             <Input
               id="defaultStartTime"
               value={workSchedule.defaultStartTime}
               onChange={(e) => updateDefaultStartTime(e.target.value)}
               placeholder="6:00"
-              className="w-24"
+              className="w-20 h-8 text-sm"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="defaultHours">Výchozí hodiny/den</Label>
+          <div className="space-y-1">
+            <Label htmlFor="defaultHours" className="text-xs">Hodin/den</Label>
             <Input
               id="defaultHours"
               type="number"
@@ -114,95 +113,73 @@ export function WorkScheduleSettings() {
               step="0.5"
               value={workSchedule.defaultHours}
               onChange={(e) => updateDefaultHours(parseFloat(e.target.value) || 0)}
-              className="w-24"
+              className="w-16 h-8 text-sm"
             />
           </div>
+          <button
+            type="button"
+            onClick={applyDefaultsToAllWorkDays}
+            className="text-xs text-blue-600 hover:underline pb-1"
+          >
+            Použít na vše
+          </button>
         </div>
 
-        <button
-          type="button"
-          onClick={applyDefaultsToAllWorkDays}
-          className="text-sm text-blue-600 hover:underline"
-        >
-          Aplikovat výchozí hodnoty na všechny pracovní dny
-        </button>
-
         {/* Per-day configuration */}
-        <div className="space-y-2">
-          <Label className="text-base font-semibold">Rozvrh dle dnů</Label>
-          <div className="border rounded-lg overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-muted">
-                  <th className="p-2 text-left">Den</th>
-                  <th className="p-2 text-center">Pracovní</th>
-                  <th className="p-2 text-center">Začátek</th>
-                  <th className="p-2 text-center">Hodiny</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[1, 2, 3, 4, 5, 6, 0].map((dayOfWeek) => {
-                  const daySchedule = workSchedule.days[dayOfWeek] || {
-                    isWorkDay: dayOfWeek !== 0 && dayOfWeek !== 6,
-                    startTime: workSchedule.defaultStartTime,
-                    hours: workSchedule.defaultHours,
-                  }
-                  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6
+        <div className="border rounded-lg overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-muted text-xs">
+                <th className="p-2 text-left font-medium">Den</th>
+                <th className="p-2 text-center font-medium">Začátek</th>
+                <th className="p-2 text-center font-medium">Hodiny</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[1, 2, 3, 4, 5].map((dayOfWeek) => {
+                const daySchedule = workSchedule.days[dayOfWeek] || {
+                  isWorkDay: true,
+                  startTime: workSchedule.defaultStartTime,
+                  hours: workSchedule.defaultHours,
+                }
 
-                  return (
-                    <tr
-                      key={dayOfWeek}
-                      className={isWeekend ? 'bg-gray-50' : ''}
-                    >
-                      <td className="p-2 font-medium">{DAY_NAMES[dayOfWeek]}</td>
-                      <td className="p-2 text-center">
-                        <Checkbox
-                          checked={daySchedule.isWorkDay}
-                          onCheckedChange={(checked) =>
-                            updateDaySchedule(dayOfWeek, {
-                              isWorkDay: checked === true,
-                              hours: checked ? workSchedule.defaultHours : 0,
-                            })
-                          }
-                        />
-                      </td>
-                      <td className="p-2 text-center">
-                        <Input
-                          value={daySchedule.startTime}
-                          onChange={(e) =>
-                            updateDaySchedule(dayOfWeek, { startTime: e.target.value })
-                          }
-                          disabled={!daySchedule.isWorkDay}
-                          className="w-20 h-8 text-center text-xs mx-auto"
-                          placeholder="6:00"
-                        />
-                      </td>
-                      <td className="p-2 text-center">
-                        <Input
-                          type="number"
-                          min="0"
-                          max="24"
-                          step="0.5"
-                          value={daySchedule.hours || ''}
-                          onChange={(e) =>
-                            updateDaySchedule(dayOfWeek, {
-                              hours: parseFloat(e.target.value) || 0,
-                            })
-                          }
-                          disabled={!daySchedule.isWorkDay}
-                          className="w-16 h-8 text-center text-xs mx-auto"
-                        />
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+                return (
+                  <tr key={dayOfWeek} className="border-t">
+                    <td className="p-2 font-medium text-sm">{DAY_NAMES[dayOfWeek]}</td>
+                    <td className="p-1.5 text-center">
+                      <Input
+                        value={daySchedule.startTime}
+                        onChange={(e) =>
+                          updateDaySchedule(dayOfWeek, { startTime: e.target.value })
+                        }
+                        className="w-full max-w-[5rem] h-7 text-center text-xs mx-auto"
+                        placeholder="6:00"
+                      />
+                    </td>
+                    <td className="p-1.5 text-center">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="24"
+                        step="0.5"
+                        value={daySchedule.hours || ''}
+                        onChange={(e) =>
+                          updateDaySchedule(dayOfWeek, {
+                            hours: parseFloat(e.target.value) || 0,
+                          })
+                        }
+                        className="w-full max-w-[4rem] h-7 text-center text-xs mx-auto"
+                      />
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Poznámka: Změny rozvrhu se projeví až při načtení nového měsíce.
+          Změny se projeví při načtení nového měsíce.
         </p>
       </CardContent>
     </Card>
