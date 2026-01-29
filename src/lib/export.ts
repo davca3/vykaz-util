@@ -178,3 +178,290 @@ export function getFilename(settings: UserSettings, monthData: MonthData, extens
   const base = settings.lastName || 'vykaz'
   return `${base}_${monthStr}${yearStr}.${extension}`
 }
+
+/**
+ * Export to PDF by converting the filled XLSX template via server-side LibreOffice
+ */
+export async function exportToPdfViaServer(
+  monthData: MonthData,
+  settings: UserSettings,
+  previousMonthsNV: number
+): Promise<Blob> {
+  // First, generate the filled XLSX
+  const xlsxBlob = await exportToExcel(monthData, settings, previousMonthsNV)
+
+  // Send to server for conversion
+  const formData = new FormData()
+  formData.append('file', xlsxBlob, 'vykaz.xlsx')
+
+  const response = await fetch('/api/convert-pdf', {
+    method: 'POST',
+    body: formData,
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || 'Failed to convert to PDF')
+  }
+
+  return response.blob()
+}
+
+/**
+ * Export to PDF matching the Excel template structure exactly
+ */
+export async function exportToPdf(
+  monthData: MonthData,
+  settings: UserSettings,
+  previousMonthsNV: number
+): Promise<Blob> {
+  const { default: jsPDF } = await import('jspdf')
+  const { default: autoTable } = await import('jspdf-autotable')
+
+  // A4 landscape
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
+  const pageWidth = 297
+  const pageHeight = 210
+  const margin = 5
+
+  const fullName = `${settings.lastName} ${settings.firstName}`.trim()
+
+  // === ROW 1: Title ===
+  doc.setFontSize(11)
+  doc.setFont('helvetica', 'bold')
+  doc.text('EVIDENCE PRACOVNÍ DOBY', pageWidth / 2, 8, { align: 'center' })
+
+  // === ROW 2: Employee info ===
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'normal')
+  doc.text(`Příjmení a jméno: ${fullName || ''}`, margin, 14)
+  doc.text(`Číslo zaměstnance: ${settings.employeeNumber || ''}`, 180, 14)
+
+  // === ROW 3: Period and work hours ===
+  doc.text(`Úvazek: 8 hod`, margin, 19)
+  doc.text(`Pracovní přestávka: 30 min`, 60, 19)
+  doc.text(`Období (měsíc/rok): ${monthData.month}/${monthData.year}`, 180, 19)
+
+  // === Main data table (rows 4-38 in template) ===
+  // Prepare table data matching template columns exactly
+  const tableData = monthData.days.map(day => {
+    const startTimeDecimal = parseTimeToDecimal(day.startTime || DEFAULT_START_TIME)
+
+    let col2 = '' // od (start time)
+    let col3 = '' // type marker (in middle of od-do)
+    let col4 = '' // do (end time)
+    let col6 = '' // break start
+    let col7 = '' // break end
+    let col8: string | number = '' // total worked
+    let col9: string | number = '' // čerpání NV
+    let col10: string | number = '' // přesčas na NV
+    let col11: string | number = '' // přesčas k proplacení
+    let col12: string | number = '' // propustky
+    let col13 = '' // přerušení od-do
+    let col14 = '' // důvod
+
+    if (day.isWeekend) {
+      col3 = '-'
+      col6 = '-'
+    } else if (day.isHoliday || day.interruptionType === 'Sv') {
+      col3 = 'Sv'
+    } else if (day.interruptionType) {
+      col3 = day.interruptionType
+      if (day.interruptionType === 'D' && day.workedHours > 0) {
+        col2 = formatDecimalToTime(startTimeDecimal)
+        col4 = formatDecimalToTime(startTimeDecimal + day.workedHours)
+        col8 = day.workedHours
+      }
+    } else if (day.workedHours > 0) {
+      // Regular work day
+      col2 = formatDecimalToTime(startTimeDecimal)
+      const endHour = startTimeDecimal + day.workedHours + 0.5
+      col4 = formatDecimalToTime(endHour)
+      col6 = formatDecimalToTime(startTimeDecimal + 4) // break after 4h
+      col7 = formatDecimalToTime(startTimeDecimal + 4.5)
+      col8 = day.workedHours
+    }
+
+    if (day.compensatoryLeaveHours > 0) col9 = day.compensatoryLeaveHours
+    if (day.overtimeHours > 0) col10 = day.overtimeHours
+    if (day.overtimeToPayHours > 0) col11 = day.overtimeToPayHours
+    if (day.passHours > 0) col12 = day.passHours
+    if (day.passFrom && day.passTo) col13 = `${day.passFrom}-${day.passTo}`
+    if (day.passReason) col14 = day.passReason
+
+    return [
+      day.dayOfMonth,
+      col2, col3, col4,
+      col6, col7,
+      col8, col9, col10, col11, col12, col13, col14
+    ]
+  })
+
+  // Add totals row
+  const totalsRow = [
+    'Celkem',
+    '', '', '',
+    '', '',
+    monthData.totalWorkedHours,
+    monthData.totalCompensatoryLeaveHours || '',
+    monthData.totalOvertimeHours - monthData.totalOvertimeToPayHours || '',
+    monthData.totalOvertimeToPayHours || '',
+    monthData.totalPassHours || '',
+    '', ''
+  ]
+  tableData.push(totalsRow)
+
+  // Column headers matching template exactly
+  const headers = [
+    [
+      { content: 'Den', rowSpan: 4 },
+      { content: 'Pracováno', colSpan: 3 },
+      { content: 'Prac.přestávka', colSpan: 2 },
+      { content: 'Celkem\nodprac.\nvč.přesč.\nhod.', rowSpan: 4 },
+      { content: 'Čerpání NV\nhod.(-)\nz min.měs.\nk proplac.', rowSpan: 4 },
+      { content: 'Přesčas.hod.\nv tomto měs.\nna NV do\ndalš.měsíců', rowSpan: 4 },
+      { content: 'Přesčas.hod.\nv tomto měs.\n\nk proplac.', rowSpan: 4 },
+      { content: 'Propustky\nhod.\n\nlékař,krev...', rowSpan: 4 },
+      { content: 'Přerušení\nprac.doby\n\nod-do', rowSpan: 4 },
+      { content: 'Důvod přerušení\nprac.doby\n\n(služ.cesta,lékař..)', rowSpan: 4 },
+    ],
+    [
+      { content: 'od-do', colSpan: 3 },
+      { content: 'od-do', colSpan: 2 },
+    ],
+  ]
+
+  autoTable(doc, {
+    startY: 23,
+    head: headers,
+    body: tableData,
+    theme: 'grid',
+    styles: {
+      fontSize: 6,
+      cellPadding: 0.5,
+      lineColor: [0, 0, 0],
+      lineWidth: 0.15,
+      valign: 'middle',
+      halign: 'center',
+    },
+    headStyles: {
+      fillColor: [255, 255, 255],
+      textColor: [0, 0, 0],
+      fontSize: 5,
+      fontStyle: 'normal',
+      halign: 'center',
+      valign: 'middle',
+      minCellHeight: 12,
+    },
+    columnStyles: {
+      0: { cellWidth: 7 },    // Den
+      1: { cellWidth: 11 },   // od
+      2: { cellWidth: 8 },    // typ
+      3: { cellWidth: 11 },   // do
+      4: { cellWidth: 11 },   // přest. od
+      5: { cellWidth: 11 },   // přest. do
+      6: { cellWidth: 12 },   // celkem
+      7: { cellWidth: 14 },   // čerpání NV
+      8: { cellWidth: 14 },   // přesčas NV
+      9: { cellWidth: 14 },   // přesčas propl
+      10: { cellWidth: 12 },  // propustky
+      11: { cellWidth: 18 },  // přerušení od-do
+      12: { cellWidth: 28 },  // důvod
+    },
+    didParseCell: function(data) {
+      if (data.section === 'body' && data.row.index < monthData.days.length) {
+        const day = monthData.days[data.row.index]
+        if (day.isWeekend) {
+          data.cell.styles.fillColor = [230, 230, 230]
+        } else if (day.isHoliday) {
+          data.cell.styles.fillColor = [255, 255, 200]
+        }
+      }
+      // Bold totals row
+      if (data.section === 'body' && data.row.index === monthData.days.length) {
+        data.cell.styles.fontStyle = 'bold'
+        data.cell.styles.fillColor = [240, 240, 240]
+      }
+    }
+  })
+
+  const tableEndY = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY
+
+  // === Summary section (matching template rows 41-55) ===
+  let y = tableEndY + 4
+  doc.setFontSize(6)
+  doc.setFont('helvetica', 'normal')
+
+  // Left column - worked hours summary
+  const leftX = margin
+  doc.text('Odpracováno v tomto měsíci:', leftX, y)
+  doc.text(`Odpracované hodiny bez přesčasů: ${monthData.totalWorkedHours - monthData.totalOvertimeHours} hod.`, leftX, y + 4)
+  doc.text(`Odpracované přesčas.hod. v tomto měs. na NV: ${monthData.totalOvertimeHours - monthData.totalOvertimeToPayHours} hod.`, leftX, y + 8)
+  doc.text(`Odpracované přesčas.hod. v tomto měs. k propl.: ${monthData.totalOvertimeToPayHours} hod.`, leftX, y + 12)
+  doc.text(`Celkem odpracováno v tomto měsíci: ${monthData.totalWorkedHours} hod.`, leftX, y + 16)
+
+  // Middle column - to pay
+  const midX = 100
+  doc.text('Hodiny k proplacení:', midX, y)
+  doc.text(`Odprac.hod. v tomto měs. bez přesčasu: ${monthData.totalWorkedHours - monthData.totalOvertimeHours} hod.`, midX, y + 4)
+  doc.text(`Čerpání NV hod. k proplacení: ${monthData.totalCompensatoryLeaveHours} hod.`, midX, y + 8)
+  doc.text(`Přesčas.hodiny odprac. v tomto měs. k propl.: ${monthData.totalOvertimeToPayHours} hod.`, midX, y + 12)
+
+  const totalToPay = (monthData.totalWorkedHours - monthData.totalOvertimeHours) + monthData.totalCompensatoryLeaveHours + monthData.totalOvertimeToPayHours
+  doc.setFont('helvetica', 'bold')
+  doc.text(`CELKEM odprac.hod. k proplacení: ${totalToPay} hod.`, midX, y + 16)
+  doc.setFont('helvetica', 'normal')
+
+  // Right column - legend
+  const rightX = 200
+  doc.text('Legenda:', rightX, y)
+  doc.text('Sv - svátek', rightX, y + 4)
+  doc.text('D - dovolená', rightX, y + 8)
+  doc.text('N - nemocenská', rightX, y + 12)
+  doc.text('Oš - ošetřování člena rodiny', rightX, y + 16)
+  doc.text('NV - náhradní volno celý den', rightX, y + 20)
+  doc.text('P - překážky v práci (lékař, krev...)', rightX, y + 24)
+  doc.text('M - peněž.pomoc v mateřství', rightX, y + 28)
+  doc.text('RD - rodičovská dovolená', rightX, y + 32)
+  doc.text('NP - neplacené volno', rightX, y + 36)
+
+  // Additional info rows
+  y += 22
+  doc.text(`P - Propustky (lékař, dárcovství krve...): ${monthData.totalPassHours} hod.`, leftX, y)
+  doc.text(`D - Dovolená: ${monthData.totalVacationDays} dnů / ${monthData.totalVacationHours} hod.`, leftX, y + 4)
+  doc.text(`Sv - Svátky: ${monthData.days.filter(d => d.isHoliday && !d.isWeekend).length} dnů`, leftX, y + 8)
+  doc.text(`N - Nemoc: ${monthData.totalSickDays} dnů`, leftX, y + 12)
+
+  // NV Section
+  y += 18
+  doc.setFont('helvetica', 'bold')
+  doc.text('NV - Náhradní volno:', leftX, y)
+  doc.setFont('helvetica', 'normal')
+
+  const overtimeToNV = monthData.totalOvertimeHours - monthData.totalOvertimeToPayHours
+  const nvBalance = previousMonthsNV + overtimeToNV - monthData.totalCompensatoryLeaveHours
+
+  doc.text(`Zůstatek hod.NV z min.měsíců (+): ${previousMonthsNV} hod.`, leftX, y + 4)
+  doc.text(`Čerpání hod.NV k proplacení z min.měsíců (-): ${monthData.totalCompensatoryLeaveHours} hod.`, leftX, y + 8)
+  doc.text(`Přesčas.hod.odprac.v tomto měs. na NV (+): ${overtimeToNV} hod.`, leftX, y + 12)
+  doc.setFont('helvetica', 'bold')
+  doc.text(`Zůstatek hod. NV do dalších měsíců: ${nvBalance} hod.`, leftX, y + 16)
+
+  // Signature section
+  y += 24
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(7)
+  doc.text('Podpis zaměstnance: ..........................................', leftX, y)
+  doc.text('Podpis vedoucího: ..........................................', midX + 20, y)
+
+  // Add signature image if available
+  if (settings.signatureImage) {
+    try {
+      doc.addImage(settings.signatureImage, 'PNG', leftX + 35, y - 8, 40, 12)
+    } catch (e) {
+      console.error('Failed to add signature:', e)
+    }
+  }
+
+  return doc.output('blob')
+}
