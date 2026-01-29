@@ -56,20 +56,39 @@ export function TimesheetTable() {
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="border-b bg-muted/50">
-                <th className="p-2 text-left">Den</th>
-                <th className="p-2 text-left">Datum</th>
-                <th className="p-2 text-left">Typ</th>
-                <th className="p-2 text-center">Odprac.</th>
-                <th className="p-2 text-center">Dov. hod.</th>
-                <th className="p-2 text-center">Přesčas</th>
-                <th className="p-2 text-center">Přesč. propl.</th>
-                <th className="p-2 text-center">Čerp. NV</th>
-                <th className="p-2 text-center">Propust.</th>
-                <th className="p-2 text-left">Důvod</th>
-                <th className="p-2 text-center">Od-Do</th>
+              {/* Group headers */}
+              <tr className="bg-muted">
+                <th colSpan={3} className="p-2 text-center font-bold border border-gray-300">
+                  Základní údaje
+                </th>
+                <th colSpan={2} className="p-2 text-center font-bold border border-gray-300 bg-blue-50">
+                  Odpracované
+                </th>
+                <th colSpan={3} className="p-2 text-center font-bold border border-gray-300 bg-orange-50">
+                  Přesčasy / NV
+                </th>
+                <th colSpan={3} className="p-2 text-center font-bold border border-gray-300 bg-green-50">
+                  Propustky
+                </th>
+              </tr>
+              {/* Column headers */}
+              <tr className="bg-muted/50">
+                <th className="p-2 text-left border border-gray-300 text-xs">Den</th>
+                <th className="p-2 text-left border border-gray-300 text-xs">Datum</th>
+                <th className="p-2 text-left border border-gray-300 text-xs">Typ</th>
+                {/* Odpracované */}
+                <th className="p-2 text-center border border-gray-300 text-xs bg-blue-50/50">Hodiny</th>
+                <th className="p-2 text-center border border-gray-300 text-xs bg-blue-50/50">Dov.</th>
+                {/* Přesčasy */}
+                <th className="p-2 text-center border border-gray-300 text-xs bg-orange-50/50">Přesčas</th>
+                <th className="p-2 text-center border border-gray-300 text-xs bg-orange-50/50">K propl.</th>
+                <th className="p-2 text-center border border-gray-300 text-xs bg-orange-50/50">Čerp. NV</th>
+                {/* Propustky */}
+                <th className="p-2 text-center border border-gray-300 text-xs bg-green-50/50">Hod.</th>
+                <th className="p-2 text-left border border-gray-300 text-xs bg-green-50/50">Důvod</th>
+                <th className="p-2 text-center border border-gray-300 text-xs bg-green-50/50">Od-Do</th>
               </tr>
             </thead>
             <tbody>
@@ -82,14 +101,15 @@ export function TimesheetTable() {
                   : ''
 
                 return (
-                  <tr key={day.dayOfMonth} className={`border-b ${rowClass}`}>
-                    <td className="p-2 font-medium">
+                  <tr key={day.dayOfMonth} className={`${rowClass}`}>
+                    {/* Základní údaje */}
+                    <td className="p-1 font-medium border border-gray-200 text-center">
                       {DAY_NAMES[day.dayOfWeek]}
                     </td>
-                    <td className="p-2">
+                    <td className="p-1 border border-gray-200">
                       {day.dayOfMonth}.{currentMonth.month}.
                     </td>
-                    <td className="p-2">
+                    <td className="p-1 border-r-2 border-r-gray-400 border border-gray-200">
                       {isDisabled ? (
                         <span className="text-muted-foreground">-</span>
                       ) : (
@@ -102,7 +122,7 @@ export function TimesheetTable() {
                           }
                           disabled={day.isHoliday}
                         >
-                          <SelectTrigger className="w-[140px] h-8">
+                          <SelectTrigger className="w-[130px] h-7 text-xs">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -115,103 +135,110 @@ export function TimesheetTable() {
                         </Select>
                       )}
                     </td>
-                    <td className="p-2">
+
+                    {/* Odpracované - modrá */}
+                    <td className="p-1 border border-gray-200 bg-blue-50/30">
                       <Input
                         type="number"
                         min="0"
                         max="24"
                         step="0.5"
-                        value={day.workedHours}
+                        value={day.workedHours || ''}
                         onChange={(e) =>
                           updateDayEntry(day.dayOfMonth, {
                             workedHours: parseFloat(e.target.value) || 0,
                           })
                         }
                         disabled={isDisabled}
-                        className="w-14 h-8 text-center"
+                        className="w-14 h-7 text-center text-xs"
                       />
                     </td>
-                    <td className="p-2">
+                    <td className="p-1 border-r-2 border-r-gray-400 border border-gray-200 bg-blue-50/30">
                       <Input
                         type="number"
                         min="0"
                         max="8"
                         step="0.5"
-                        value={day.vacationHours}
+                        value={day.vacationHours || ''}
                         onChange={(e) =>
                           updateDayEntry(day.dayOfMonth, {
                             vacationHours: parseFloat(e.target.value) || 0,
                           })
                         }
                         disabled={isDisabled || day.interruptionType !== 'D'}
-                        className="w-14 h-8 text-center"
+                        className="w-14 h-7 text-center text-xs"
                       />
                     </td>
-                    <td className="p-2">
+
+                    {/* Přesčasy - oranžová */}
+                    <td className="p-1 border border-gray-200 bg-orange-50/30">
                       <Input
                         type="number"
                         min="0"
                         max="24"
                         step="0.5"
-                        value={day.overtimeHours}
+                        value={day.overtimeHours || ''}
                         onChange={(e) =>
                           updateDayEntry(day.dayOfMonth, {
                             overtimeHours: parseFloat(e.target.value) || 0,
                           })
                         }
                         disabled={isDisabled}
-                        className="w-14 h-8 text-center"
+                        className="w-14 h-7 text-center text-xs bg-orange-50"
+                        readOnly
                       />
                     </td>
-                    <td className="p-2">
+                    <td className="p-1 border border-gray-200 bg-orange-50/30">
                       <Input
                         type="number"
                         min="0"
                         max="24"
                         step="0.5"
-                        value={day.overtimeToPayHours}
+                        value={day.overtimeToPayHours || ''}
                         onChange={(e) =>
                           updateDayEntry(day.dayOfMonth, {
                             overtimeToPayHours: parseFloat(e.target.value) || 0,
                           })
                         }
                         disabled={isDisabled}
-                        className="w-14 h-8 text-center"
+                        className="w-14 h-7 text-center text-xs"
                       />
                     </td>
-                    <td className="p-2">
+                    <td className="p-1 border-r-2 border-r-gray-400 border border-gray-200 bg-orange-50/30">
                       <Input
                         type="number"
                         min="0"
                         max="24"
                         step="0.5"
-                        value={day.compensatoryLeaveHours}
+                        value={day.compensatoryLeaveHours || ''}
                         onChange={(e) =>
                           updateDayEntry(day.dayOfMonth, {
                             compensatoryLeaveHours: parseFloat(e.target.value) || 0,
                           })
                         }
                         disabled={isDisabled}
-                        className="w-14 h-8 text-center"
+                        className="w-14 h-7 text-center text-xs"
                       />
                     </td>
-                    <td className="p-2">
+
+                    {/* Propustky - zelená */}
+                    <td className="p-1 border border-gray-200 bg-green-50/30">
                       <Input
                         type="number"
                         min="0"
                         max="24"
                         step="0.5"
-                        value={day.passHours}
+                        value={day.passHours || ''}
                         onChange={(e) =>
                           updateDayEntry(day.dayOfMonth, {
                             passHours: parseFloat(e.target.value) || 0,
                           })
                         }
                         disabled={isDisabled}
-                        className="w-14 h-8 text-center"
+                        className="w-14 h-7 text-center text-xs"
                       />
                     </td>
-                    <td className="p-2">
+                    <td className="p-1 border border-gray-200 bg-green-50/30">
                       <Input
                         value={day.passReason || ''}
                         onChange={(e) =>
@@ -221,10 +248,10 @@ export function TimesheetTable() {
                         }
                         disabled={isDisabled || day.passHours === 0}
                         placeholder="Důvod"
-                        className="w-24 h-8"
+                        className="w-24 h-7 text-xs"
                       />
                     </td>
-                    <td className="p-2">
+                    <td className="p-1 border border-gray-200 bg-green-50/30">
                       <div className="flex gap-1">
                         <Input
                           value={day.passFrom || ''}
@@ -235,7 +262,7 @@ export function TimesheetTable() {
                           }
                           disabled={isDisabled || day.passHours === 0}
                           placeholder="Od"
-                          className="w-16 h-8"
+                          className="w-14 h-7 text-xs"
                         />
                         <Input
                           value={day.passTo || ''}
@@ -246,7 +273,7 @@ export function TimesheetTable() {
                           }
                           disabled={isDisabled || day.passHours === 0}
                           placeholder="Do"
-                          className="w-16 h-8"
+                          className="w-14 h-7 text-xs"
                         />
                       </div>
                     </td>

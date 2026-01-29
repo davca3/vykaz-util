@@ -111,6 +111,10 @@ export const useTimesheetStore = create<TimesheetState>()(
                 }
               }
 
+              // Auto-calculate overtime: hours over 8 are overtime
+              const totalHours = updates.workedHours ?? updated.workedHours
+              updated.overtimeHours = Math.max(0, totalHours - STANDARD_WORK_HOURS)
+
               return updated
             }
             return day
