@@ -60,7 +60,7 @@ export function TimesheetTable() {
             <thead>
               {/* Group headers */}
               <tr className="bg-muted">
-                <th colSpan={3} className="p-2 text-center font-bold border border-gray-300">
+                <th colSpan={4} className="p-2 text-center font-bold border border-gray-300">
                   Základní údaje
                 </th>
                 <th colSpan={2} className="p-2 text-center font-bold border border-gray-300 bg-blue-50">
@@ -78,6 +78,7 @@ export function TimesheetTable() {
                 <th className="p-2 text-left border border-gray-300 text-xs">Den</th>
                 <th className="p-2 text-left border border-gray-300 text-xs">Datum</th>
                 <th className="p-2 text-left border border-gray-300 text-xs">Typ</th>
+                <th className="p-2 text-center border border-gray-300 text-xs">Od</th>
                 {/* Odpracované */}
                 <th className="p-2 text-center border border-gray-300 text-xs bg-blue-50/50">Hodiny</th>
                 <th className="p-2 text-center border border-gray-300 text-xs bg-blue-50/50">Dov.</th>
@@ -93,7 +94,7 @@ export function TimesheetTable() {
             </thead>
             <tbody>
               {currentMonth.days.map((day) => {
-                const isDisabled = day.isWeekend
+                const isDisabled = day.isWeekend || day.isHoliday
                 const rowClass = day.isWeekend
                   ? 'bg-gray-100'
                   : day.isHoliday
@@ -109,9 +110,11 @@ export function TimesheetTable() {
                     <td className="p-1 border border-gray-200">
                       {day.dayOfMonth}.{currentMonth.month}.
                     </td>
-                    <td className="p-1 border-r-2 border-r-gray-400 border border-gray-200">
+                    <td className="p-1 border border-gray-200">
                       {isDisabled ? (
-                        <span className="text-muted-foreground">-</span>
+                        <span className="text-muted-foreground text-xs">
+                          {day.isHoliday ? (day.holidayName || 'Svátek') : (day.dayOfWeek === 0 ? 'Neděle' : 'Sobota')}
+                        </span>
                       ) : (
                         <Select
                           value={toSelectValue(day.interruptionType)}
@@ -120,7 +123,6 @@ export function TimesheetTable() {
                               interruptionType: fromSelectValue(v) as InterruptionType,
                             })
                           }
-                          disabled={day.isHoliday}
                         >
                           <SelectTrigger className="w-[130px] h-7 text-xs">
                             <SelectValue />
@@ -134,6 +136,21 @@ export function TimesheetTable() {
                           </SelectContent>
                         </Select>
                       )}
+                    </td>
+
+                    {/* Začátek práce */}
+                    <td className="p-1 border-r-2 border-r-gray-400 border border-gray-200">
+                      <Input
+                        value={day.startTime || ''}
+                        onChange={(e) =>
+                          updateDayEntry(day.dayOfMonth, {
+                            startTime: e.target.value,
+                          })
+                        }
+                        disabled={isDisabled}
+                        placeholder="6:00"
+                        className="w-14 h-7 text-center text-xs"
+                      />
                     </td>
 
                     {/* Odpracované - modrá */}

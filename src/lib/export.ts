@@ -1,10 +1,9 @@
 'use client'
 
 import ExcelJS from 'exceljs'
-import { MonthData, UserSettings, WorkSchedule } from '@/types'
+import { MonthData, UserSettings } from '@/types'
 
 const DEFAULT_START_TIME = '6:00'
-const DEFAULT_WORK_HOURS = 8
 
 /**
  * Parse time string (e.g., "6:00" or "6.00") to decimal hours
@@ -22,22 +21,6 @@ function formatDecimalToTime(decimal: number): string {
   const hours = Math.floor(decimal)
   const minutes = Math.round((decimal - hours) * 60)
   return `${hours}.${minutes.toString().padStart(2, '0')}`
-}
-
-/**
- * Get schedule for a specific day of week from settings
- */
-function getScheduleForDay(workSchedule: WorkSchedule | undefined, dayOfWeek: number): { startTime: string; hours: number } {
-  if (!workSchedule) {
-    return { startTime: DEFAULT_START_TIME, hours: DEFAULT_WORK_HOURS }
-  }
-
-  const daySchedule = workSchedule.days[dayOfWeek]
-  if (daySchedule) {
-    return { startTime: daySchedule.startTime, hours: daySchedule.hours }
-  }
-
-  return { startTime: workSchedule.defaultStartTime, hours: workSchedule.defaultHours }
 }
 
 /**
@@ -78,9 +61,8 @@ export async function exportToExcel(
     // Skip if row doesn't exist (months with < 31 days handled by template)
     if (row > 38) continue
 
-    // Get schedule for this day of week
-    const schedule = getScheduleForDay(settings.workSchedule, day.dayOfWeek)
-    const startTimeDecimal = parseTimeToDecimal(schedule.startTime)
+    // Use day's own start time (can be overridden per day)
+    const startTimeDecimal = parseTimeToDecimal(day.startTime || DEFAULT_START_TIME)
 
     // Column mapping based on template:
     // A = Day number (already filled)

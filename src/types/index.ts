@@ -19,6 +19,9 @@ export interface DayEntry {
   isHoliday: boolean
   holidayName?: string
   interruptionType: InterruptionType
+  // Schedule for this specific day (can override weekly schedule)
+  startTime: string // HH:MM format (e.g., "6:00")
+  scheduledHours: number // Planned hours for this day
   workedHours: number
   overtimeHours: number
   overtimeToPayHours: number // Přesčas k proplacení (tento den)

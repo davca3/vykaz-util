@@ -96,6 +96,8 @@ export const useTimesheetStore = create<TimesheetState>()(
             isHoliday: holidayInfo.isHoliday,
             holidayName: holidayInfo.name,
             interruptionType: holidayInfo.isHoliday && !weekend ? 'Sv' : '',
+            startTime: schedule.startTime,
+            scheduledHours: schedule.hours,
             workedHours: isWorkingDay ? schedule.hours : 0,
             overtimeHours: 0,
             overtimeToPayHours: 0,
@@ -129,16 +131,14 @@ export const useTimesheetStore = create<TimesheetState>()(
       },
 
       updateDayEntry: (dayOfMonth, updates) => {
-        const { getScheduleForDay } = get()
-
         set((state) => {
           if (!state.currentMonth) return state
 
           const days = state.currentMonth.days.map((day) => {
             if (day.dayOfMonth === dayOfMonth) {
               const updated = { ...day, ...updates }
-              const schedule = getScheduleForDay(day.dayOfWeek)
-              const standardHours = schedule.hours
+              // Use day's scheduledHours (can be overridden per day)
+              const standardHours = updates.scheduledHours ?? updated.scheduledHours
 
               // If interruption type is set (not regular work), adjust worked hours
               if (updates.interruptionType !== undefined && updates.interruptionType !== '') {
@@ -166,7 +166,7 @@ export const useTimesheetStore = create<TimesheetState>()(
                 updated.vacationHours = 0
               }
 
-              // Auto-calculate overtime: hours over standard are overtime
+              // Auto-calculate overtime: hours over scheduled are overtime
               const totalHours = updates.workedHours ?? updated.workedHours
               updated.overtimeHours = Math.max(0, totalHours - standardHours)
 
