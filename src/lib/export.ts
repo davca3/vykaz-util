@@ -2,6 +2,7 @@
 
 import ExcelJS from 'exceljs'
 import { MonthData, UserSettings } from '@/types'
+import { getWorkingDaysInMonth, getHolidaysInMonth } from '@/lib/holidays'
 
 const DEFAULT_START_TIME = '6:00'
 
@@ -146,9 +147,10 @@ export async function exportToExcel(
     }
   }
 
-  // NV z minulých měsíců - need to find where this goes in template
-  // Based on template analysis, Row 60+ has NV section
-  // For now, the formulas in the template should auto-calculate sums
+  // Summary sections use formulas in template, only fill input values
+  const workingDays = getWorkingDaysInMonth(monthData.year, monthData.month)
+  sheet.getCell('N54').value = workingDays // Pracovní dny bez svátků pro FPD
+  sheet.getCell('K61').value = previousMonthsNV // Zůstatek NV hod z minulých měsíců
 
   // Add signature image if available (find appropriate position)
   if (settings.signatureImage) {
@@ -432,7 +434,7 @@ export async function exportToPdf(
   doc.text(`Sv - Svátky: ${monthData.days.filter(d => d.isHoliday && !d.isWeekend).length} dnů`, leftX, y + 8)
   doc.text(`N - Nemoc: ${monthData.totalSickDays} dnů`, leftX, y + 12)
 
-  // NV Section
+  // NV Section (left column)
   y += 18
   doc.setFont('helvetica', 'bold')
   doc.text('NV - Náhradní volno:', leftX, y)
@@ -446,6 +448,19 @@ export async function exportToPdf(
   doc.text(`Přesčas.hod.odprac.v tomto měs. na NV (+): ${overtimeToNV} hod.`, leftX, y + 12)
   doc.setFont('helvetica', 'bold')
   doc.text(`Zůstatek hod. NV do dalších měsíců: ${nvBalance} hod.`, leftX, y + 16)
+
+  // FPD Section (middle column, same row as NV)
+  const workingDays = getWorkingDaysInMonth(monthData.year, monthData.month)
+  const holidaysCount = getHolidaysInMonth(monthData.year, monthData.month)
+  const fondPracovniDoby = (workingDays + holidaysCount) * 8
+
+  doc.setFont('helvetica', 'bold')
+  doc.text('FPD - Fond pracovní doby:', midX, y)
+  doc.setFont('helvetica', 'normal')
+  doc.text(`Pracovní dny: ${workingDays}`, midX, y + 4)
+  doc.text(`Svátky (pracovní dny): ${holidaysCount}`, midX, y + 8)
+  doc.setFont('helvetica', 'bold')
+  doc.text(`FPD celkem: ${fondPracovniDoby} hod.`, midX, y + 12)
 
   // Signature section
   y += 24

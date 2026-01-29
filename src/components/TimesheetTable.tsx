@@ -124,7 +124,7 @@ export function TimesheetTable() {
                             })
                           }
                         >
-                          <SelectTrigger className="w-[130px] h-7 text-xs">
+                          <SelectTrigger className="w-full min-w-[120px] h-7 text-xs px-2">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -149,7 +149,7 @@ export function TimesheetTable() {
                         }
                         disabled={isDisabled}
                         placeholder="6:00"
-                        className="w-14 h-7 text-center text-xs"
+                        className="w-full min-w-[3.5rem] h-7 text-center text-xs px-1"
                       />
                     </td>
 
@@ -167,7 +167,7 @@ export function TimesheetTable() {
                           })
                         }
                         disabled={isDisabled}
-                        className="w-14 h-7 text-center text-xs"
+                        className="w-full min-w-[3.5rem] h-7 text-center text-xs px-1"
                       />
                     </td>
                     <td className="p-1 border-r-2 border-r-gray-400 border border-gray-200 bg-blue-50/30">
@@ -183,7 +183,7 @@ export function TimesheetTable() {
                           })
                         }
                         disabled={isDisabled || day.interruptionType !== 'D'}
-                        className="w-14 h-7 text-center text-xs"
+                        className="w-full min-w-[3.5rem] h-7 text-center text-xs px-1"
                       />
                     </td>
 
@@ -201,7 +201,7 @@ export function TimesheetTable() {
                           })
                         }
                         disabled={isDisabled}
-                        className="w-14 h-7 text-center text-xs bg-orange-50"
+                        className="w-full min-w-[3.5rem] h-7 text-center text-xs px-1 bg-orange-50"
                         readOnly
                       />
                     </td>
@@ -218,7 +218,7 @@ export function TimesheetTable() {
                           })
                         }
                         disabled={isDisabled}
-                        className="w-14 h-7 text-center text-xs"
+                        className="w-full min-w-[3.5rem] h-7 text-center text-xs px-1"
                       />
                     </td>
                     <td className="p-1 border-r-2 border-r-gray-400 border border-gray-200 bg-orange-50/30">
@@ -234,7 +234,7 @@ export function TimesheetTable() {
                           })
                         }
                         disabled={isDisabled}
-                        className="w-14 h-7 text-center text-xs"
+                        className="w-full min-w-[3.5rem] h-7 text-center text-xs px-1"
                       />
                     </td>
 
@@ -252,7 +252,7 @@ export function TimesheetTable() {
                           })
                         }
                         disabled={isDisabled}
-                        className="w-14 h-7 text-center text-xs"
+                        className="w-full min-w-[3.5rem] h-7 text-center text-xs px-1"
                       />
                     </td>
                     <td className="p-1 border border-gray-200 bg-green-50/30">
@@ -265,7 +265,7 @@ export function TimesheetTable() {
                         }
                         disabled={isDisabled || day.passHours === 0}
                         placeholder="Důvod"
-                        className="w-24 h-7 text-xs"
+                        className="w-full min-w-[5rem] h-7 text-xs px-1"
                       />
                     </td>
                     <td className="p-1 border border-gray-200 bg-green-50/30">
@@ -279,7 +279,7 @@ export function TimesheetTable() {
                           }
                           disabled={isDisabled || day.passHours === 0}
                           placeholder="Od"
-                          className="w-14 h-7 text-xs"
+                          className="w-full min-w-[3rem] h-7 text-xs px-1"
                         />
                         <Input
                           value={day.passTo || ''}
@@ -290,7 +290,7 @@ export function TimesheetTable() {
                           }
                           disabled={isDisabled || day.passHours === 0}
                           placeholder="Do"
-                          className="w-14 h-7 text-xs"
+                          className="w-full min-w-[3rem] h-7 text-xs px-1"
                         />
                       </div>
                     </td>
