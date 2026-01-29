@@ -89,8 +89,8 @@ export function TimesheetTable() {
                 <th className="p-2 text-center border border-gray-300 text-xs bg-orange-50/50">Čerp. NV</th>
                 {/* Propustky */}
                 <th className="p-2 text-center border border-gray-300 text-xs bg-green-50/50">Hod.</th>
+                <th className="p-2 text-center border border-gray-300 text-xs bg-green-50/50">Od</th>
                 <th className="p-2 text-left border border-gray-300 text-xs bg-green-50/50">Důvod</th>
-                <th className="p-2 text-center border border-gray-300 text-xs bg-green-50/50">Od-Do</th>
               </tr>
             </thead>
             <tbody>
@@ -251,6 +251,18 @@ export function TimesheetTable() {
                       />
                     </td>
                     <td className="p-1 border border-gray-200 bg-green-50/30">
+                      <TimeInput
+                        value={day.passFrom || ''}
+                        onChange={(value) =>
+                          updateDayEntry(day.dayOfMonth, {
+                            passFrom: value,
+                          })
+                        }
+                        disabled={isDisabled || day.passHours === 0}
+                        className="min-w-[5rem]"
+                      />
+                    </td>
+                    <td className="p-1 border border-gray-200 bg-green-50/30">
                       <Input
                         value={day.passReason || ''}
                         onChange={(e) =>
@@ -262,30 +274,6 @@ export function TimesheetTable() {
                         placeholder="Důvod"
                         className="w-full min-w-[5rem] h-7 text-xs px-1"
                       />
-                    </td>
-                    <td className="p-1 border border-gray-200 bg-green-50/30">
-                      <div className="flex gap-1">
-                        <TimeInput
-                          value={day.passFrom || ''}
-                          onChange={(value) =>
-                            updateDayEntry(day.dayOfMonth, {
-                              passFrom: value,
-                            })
-                          }
-                          disabled={isDisabled || day.passHours === 0}
-                          className="min-w-[5rem]"
-                        />
-                        <TimeInput
-                          value={day.passTo || ''}
-                          onChange={(value) =>
-                            updateDayEntry(day.dayOfMonth, {
-                              passTo: value,
-                            })
-                          }
-                          disabled={isDisabled || day.passHours === 0}
-                          className="min-w-[5rem]"
-                        />
-                      </div>
                     </td>
                   </tr>
                 )

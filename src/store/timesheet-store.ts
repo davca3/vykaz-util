@@ -8,6 +8,19 @@ import { isHoliday, isWeekend } from '@/lib/holidays'
 const DEFAULT_WORK_HOURS = 8
 const DEFAULT_START_TIME = '6:00'
 
+// Helper functions for time conversion
+function parseTimeToDecimal(time: string): number {
+  const normalized = time.replace('.', ':')
+  const [hours, minutes] = normalized.split(':').map(Number)
+  return hours + (minutes || 0) / 60
+}
+
+function formatDecimalToTime(decimal: number): string {
+  const hours = Math.floor(decimal)
+  const minutes = Math.round((decimal - hours) * 60)
+  return `${hours}:${minutes.toString().padStart(2, '0')}`
+}
+
 // Default work schedule: Mon-Fri 8 hours starting at 6:00
 const defaultWorkSchedule: WorkSchedule = {
   defaultStartTime: DEFAULT_START_TIME,
@@ -178,6 +191,16 @@ export const useTimesheetStore = create<TimesheetState>()(
               // Ensure overtimeToPayHours doesn't exceed overtimeHours
               if (updated.overtimeToPayHours > updated.overtimeHours) {
                 updated.overtimeToPayHours = updated.overtimeHours
+              }
+
+              // Auto-calculate passTo based on passFrom + passHours
+              if (updated.passFrom && updated.passHours > 0) {
+                const passFromDecimal = parseTimeToDecimal(updated.passFrom)
+                const passToDecimal = passFromDecimal + updated.passHours
+                updated.passTo = formatDecimalToTime(passToDecimal)
+              } else if (!updated.passHours || updated.passHours === 0) {
+                updated.passFrom = undefined
+                updated.passTo = undefined
               }
 
               return updated
