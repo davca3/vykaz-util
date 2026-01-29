@@ -3,6 +3,7 @@
 import { useTimesheetStore } from '@/store/timesheet-store'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { TimeInput } from '@/components/ui/time-input'
 import {
   Select,
   SelectContent,
@@ -140,16 +141,15 @@ export function TimesheetTable() {
 
                     {/* Začátek práce */}
                     <td className="p-1 border-r-2 border-r-gray-400 border border-gray-200">
-                      <Input
-                        value={day.startTime || ''}
-                        onChange={(e) =>
+                      <TimeInput
+                        value={day.startTime || '6:00'}
+                        onChange={(value) =>
                           updateDayEntry(day.dayOfMonth, {
-                            startTime: e.target.value,
+                            startTime: value,
                           })
                         }
                         disabled={isDisabled}
-                        placeholder="6:00"
-                        className="w-full min-w-[3.5rem] h-7 text-center text-xs px-1"
+                        className="w-full min-w-[5rem]"
                       />
                     </td>
 
@@ -270,27 +270,25 @@ export function TimesheetTable() {
                     </td>
                     <td className="p-1 border border-gray-200 bg-green-50/30">
                       <div className="flex gap-1">
-                        <Input
+                        <TimeInput
                           value={day.passFrom || ''}
-                          onChange={(e) =>
+                          onChange={(value) =>
                             updateDayEntry(day.dayOfMonth, {
-                              passFrom: e.target.value,
+                              passFrom: value,
                             })
                           }
                           disabled={isDisabled || day.passHours === 0}
-                          placeholder="Od"
-                          className="w-full min-w-[3rem] h-7 text-xs px-1"
+                          className="min-w-[5rem]"
                         />
-                        <Input
+                        <TimeInput
                           value={day.passTo || ''}
-                          onChange={(e) =>
+                          onChange={(value) =>
                             updateDayEntry(day.dayOfMonth, {
-                              passTo: e.target.value,
+                              passTo: value,
                             })
                           }
                           disabled={isDisabled || day.passHours === 0}
-                          placeholder="Do"
-                          className="w-full min-w-[3rem] h-7 text-xs px-1"
+                          className="min-w-[5rem]"
                         />
                       </div>
                     </td>

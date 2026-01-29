@@ -2,6 +2,7 @@
 
 import { useTimesheetStore } from '@/store/timesheet-store'
 import { Input } from '@/components/ui/input'
+import { TimeInput } from '@/components/ui/time-input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { WorkSchedule, DaySchedule } from '@/types'
@@ -95,12 +96,10 @@ export function WorkScheduleSettings() {
         <div className="flex items-end gap-4 p-3 bg-muted rounded-lg">
           <div className="space-y-1">
             <Label htmlFor="defaultStartTime" className="text-xs">Začátek</Label>
-            <Input
-              id="defaultStartTime"
+            <TimeInput
               value={workSchedule.defaultStartTime}
-              onChange={(e) => updateDefaultStartTime(e.target.value)}
-              placeholder="6:00"
-              className="w-20 h-8 text-sm"
+              onChange={(value) => updateDefaultStartTime(value)}
+              className="w-24"
             />
           </div>
           <div className="space-y-1">
@@ -147,13 +146,12 @@ export function WorkScheduleSettings() {
                   <tr key={dayOfWeek} className="border-t">
                     <td className="p-2 font-medium text-sm">{DAY_NAMES[dayOfWeek]}</td>
                     <td className="p-1.5 text-center">
-                      <Input
+                      <TimeInput
                         value={daySchedule.startTime}
-                        onChange={(e) =>
-                          updateDaySchedule(dayOfWeek, { startTime: e.target.value })
+                        onChange={(value) =>
+                          updateDaySchedule(dayOfWeek, { startTime: value })
                         }
-                        className="w-full max-w-[5rem] h-7 text-center text-xs mx-auto"
-                        placeholder="6:00"
+                        className="w-full max-w-[6rem] mx-auto"
                       />
                     </td>
                     <td className="p-1.5 text-center">

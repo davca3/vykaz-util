@@ -1,9 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTimesheetStore } from '@/store/timesheet-store'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { exportToExcel, exportToPdfViaServer, getFilename } from '@/lib/export'
 import { FileSpreadsheet, FileText, Loader2 } from 'lucide-react'
 
@@ -13,6 +21,20 @@ export function ExportButtons() {
   const [pdfError, setPdfError] = useState<string | null>(null)
   const [showNVPrompt, setShowNVPrompt] = useState(false)
   const [nvBalance, setNvBalance] = useState(0)
+
+  // Prevent leaving page when modal is open
+  useEffect(() => {
+    if (!showNVPrompt) return
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ''
+      return ''
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [showNVPrompt])
 
   const calculateAndPromptNV = () => {
     if (!currentMonth) return
@@ -112,25 +134,32 @@ export function ExportButtons() {
           </p>
         )}
 
-        {showNVPrompt && (
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-3">
-            <p className="text-sm font-medium">
-              Uložit zůstatek NV hodin pro příští měsíc?
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Nový zůstatek: <span className="font-bold">{nvBalance} hod</span>
-            </p>
-            <div className="flex gap-2">
-              <Button size="sm" onClick={handleSaveNV}>
-                Ano, uložit
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => setShowNVPrompt(false)}>
-                Ne
-              </Button>
-            </div>
-          </div>
-        )}
       </CardContent>
+
+      <Dialog open={showNVPrompt} onOpenChange={setShowNVPrompt}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Uložit NV hodiny</DialogTitle>
+            <DialogDescription>
+              Chcete uložit zůstatek náhradního volna pro příští měsíc?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-center text-2xl font-bold">{nvBalance} hod</p>
+            <p className="text-center text-sm text-muted-foreground mt-1">
+              Nový zůstatek NV
+            </p>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setShowNVPrompt(false)}>
+              Zrušit
+            </Button>
+            <Button onClick={handleSaveNV}>
+              Uložit
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   )
 }

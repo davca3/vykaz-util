@@ -152,7 +152,7 @@ export async function exportToExcel(
   sheet.getCell('N54').value = workingDays // Pracovní dny bez svátků pro FPD
   sheet.getCell('K61').value = previousMonthsNV // Zůstatek NV hod z minulých měsíců
 
-  // Add signature image if available (find appropriate position)
+  // Add signature image in cell M62
   if (settings.signatureImage) {
     try {
       const base64Data = settings.signatureImage.split(',')[1]
@@ -160,10 +160,9 @@ export async function exportToExcel(
         base64: base64Data,
         extension: 'png',
       })
-      // Position near signature area (approximately row 63)
       sheet.addImage(imageId, {
-        tl: { col: 4, row: 62 },
-        ext: { width: 120, height: 40 }
+        tl: { col: 12, row: 60 },
+        ext: { width: 120, height: 45 }
       })
     } catch (e) {
       console.error('Failed to add signature:', e)
@@ -469,10 +468,10 @@ export async function exportToPdf(
   doc.text('Podpis zaměstnance: ..........................................', leftX, y)
   doc.text('Podpis vedoucího: ..........................................', midX + 20, y)
 
-  // Add signature image if available
+  // Add signature image above the signature line
   if (settings.signatureImage) {
     try {
-      doc.addImage(settings.signatureImage, 'PNG', leftX + 35, y - 8, 40, 12)
+      doc.addImage(settings.signatureImage, 'PNG', leftX + 30, y - 14, 50, 12)
     } catch (e) {
       console.error('Failed to add signature:', e)
     }
