@@ -2,10 +2,26 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { DayEntry, MonthData, UserSettings, InterruptionType } from '@/types'
+import { DayEntry, MonthData, UserSettings, InterruptionType, WorkSchedule } from '@/types'
 import { isHoliday, isWeekend } from '@/lib/holidays'
 
-const STANDARD_WORK_HOURS = 8
+const DEFAULT_WORK_HOURS = 8
+const DEFAULT_START_TIME = '6:00'
+
+// Default work schedule: Mon-Fri 8 hours starting at 6:00
+const defaultWorkSchedule: WorkSchedule = {
+  defaultStartTime: DEFAULT_START_TIME,
+  defaultHours: DEFAULT_WORK_HOURS,
+  days: {
+    0: { isWorkDay: false, startTime: DEFAULT_START_TIME, hours: 0 }, // Sunday
+    1: { isWorkDay: true, startTime: DEFAULT_START_TIME, hours: DEFAULT_WORK_HOURS }, // Monday
+    2: { isWorkDay: true, startTime: DEFAULT_START_TIME, hours: DEFAULT_WORK_HOURS }, // Tuesday
+    3: { isWorkDay: true, startTime: DEFAULT_START_TIME, hours: DEFAULT_WORK_HOURS }, // Wednesday
+    4: { isWorkDay: true, startTime: DEFAULT_START_TIME, hours: DEFAULT_WORK_HOURS }, // Thursday
+    5: { isWorkDay: true, startTime: DEFAULT_START_TIME, hours: DEFAULT_WORK_HOURS }, // Friday
+    6: { isWorkDay: false, startTime: DEFAULT_START_TIME, hours: 0 }, // Saturday
+  }
+}
 
 interface TimesheetState {
   settings: UserSettings
@@ -17,6 +33,7 @@ interface TimesheetState {
   updateDayEntry: (dayOfMonth: number, updates: Partial<DayEntry>) => void
   recalculateTotals: () => void
   setPreviousMonthsNV: (hours: number) => void
+  getScheduleForDay: (dayOfWeek: number) => { hours: number; startTime: string; isWorkDay: boolean }
 }
 
 export const useTimesheetStore = create<TimesheetState>()(
@@ -27,6 +44,7 @@ export const useTimesheetStore = create<TimesheetState>()(
         lastName: '',
         employeeNumber: '',
         signatureImage: undefined,
+        workSchedule: defaultWorkSchedule,
       },
       currentMonth: null,
       previousMonthsNV: 0,
@@ -39,24 +57,46 @@ export const useTimesheetStore = create<TimesheetState>()(
       setPreviousMonthsNV: (hours) =>
         set({ previousMonthsNV: hours }),
 
+      getScheduleForDay: (dayOfWeek: number) => {
+        const schedule = get().settings.workSchedule || defaultWorkSchedule
+        const daySchedule = schedule.days[dayOfWeek]
+        if (daySchedule) {
+          return {
+            hours: daySchedule.hours,
+            startTime: daySchedule.startTime,
+            isWorkDay: daySchedule.isWorkDay
+          }
+        }
+        return {
+          hours: schedule.defaultHours,
+          startTime: schedule.defaultStartTime,
+          isWorkDay: dayOfWeek !== 0 && dayOfWeek !== 6
+        }
+      },
+
       initializeMonth: (year, month) => {
         const daysInMonth = new Date(year, month, 0).getDate()
         const days: DayEntry[] = []
+        const { getScheduleForDay } = get()
 
         for (let day = 1; day <= daysInMonth; day++) {
           const date = new Date(year, month - 1, day)
           const holidayInfo = isHoliday(date)
           const weekend = isWeekend(date)
+          const dayOfWeek = date.getDay()
+          const schedule = getScheduleForDay(dayOfWeek)
+
+          const isWorkingDay = schedule.isWorkDay && !weekend && !holidayInfo.isHoliday
 
           days.push({
             date,
             dayOfMonth: day,
-            dayOfWeek: date.getDay(),
+            dayOfWeek,
             isWeekend: weekend,
             isHoliday: holidayInfo.isHoliday,
             holidayName: holidayInfo.name,
             interruptionType: holidayInfo.isHoliday && !weekend ? 'Sv' : '',
-            workedHours: !weekend && !holidayInfo.isHoliday ? STANDARD_WORK_HOURS : 0,
+            workedHours: isWorkingDay ? schedule.hours : 0,
             overtimeHours: 0,
             overtimeToPayHours: 0,
             compensatoryLeaveHours: 0,
@@ -89,12 +129,16 @@ export const useTimesheetStore = create<TimesheetState>()(
       },
 
       updateDayEntry: (dayOfMonth, updates) => {
+        const { getScheduleForDay } = get()
+
         set((state) => {
           if (!state.currentMonth) return state
 
           const days = state.currentMonth.days.map((day) => {
             if (day.dayOfMonth === dayOfMonth) {
               const updated = { ...day, ...updates }
+              const schedule = getScheduleForDay(day.dayOfWeek)
+              const standardHours = schedule.hours
 
               // If interruption type is set (not regular work), adjust worked hours
               if (updates.interruptionType !== undefined && updates.interruptionType !== '') {
@@ -107,13 +151,13 @@ export const useTimesheetStore = create<TimesheetState>()(
               } else if (updates.interruptionType === '' && !day.isWeekend && !day.isHoliday) {
                 // Reset to standard hours if clearing interruption
                 if (updates.workedHours === undefined) {
-                  updated.workedHours = STANDARD_WORK_HOURS
+                  updated.workedHours = standardHours
                 }
               }
 
-              // Auto-calculate overtime: hours over 8 are overtime
+              // Auto-calculate overtime: hours over standard are overtime
               const totalHours = updates.workedHours ?? updated.workedHours
-              updated.overtimeHours = Math.max(0, totalHours - STANDARD_WORK_HOURS)
+              updated.overtimeHours = Math.max(0, totalHours - standardHours)
 
               return updated
             }

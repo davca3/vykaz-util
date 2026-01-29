@@ -1,6 +1,7 @@
 'use client'
 
 import { UserSettings } from '@/components/UserSettings'
+import { WorkScheduleSettings } from '@/components/WorkScheduleSettings'
 import { MonthSelector } from '@/components/MonthSelector'
 import { TimesheetTable } from '@/components/TimesheetTable'
 import { Summary } from '@/components/Summary'
@@ -27,6 +28,7 @@ export default function Home() {
               <UserSettings />
               <MonthSelector />
             </div>
+            <WorkScheduleSettings />
           </TabsContent>
 
           <TabsContent value="timesheet" className="space-y-6">

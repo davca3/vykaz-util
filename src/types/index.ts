@@ -48,11 +48,28 @@ export interface MonthData {
   currentMonthNVUsed: number
 }
 
+// Work schedule for each day of the week (0 = Sunday, 1 = Monday, etc.)
+export interface DaySchedule {
+  isWorkDay: boolean
+  startTime: string // HH:MM format
+  hours: number
+}
+
+export interface WorkSchedule {
+  defaultStartTime: string // Default start time (e.g., "6:00")
+  defaultHours: number // Default hours per day (e.g., 8)
+  // Per-day overrides (indexed by day of week: 0=Sun, 1=Mon, ..., 6=Sat)
+  days: {
+    [key: number]: DaySchedule
+  }
+}
+
 export interface UserSettings {
   firstName: string
   lastName: string
   employeeNumber: string
   signatureImage?: string // Base64 encoded image
+  workSchedule: WorkSchedule
 }
 
 export interface TimesheetStore {

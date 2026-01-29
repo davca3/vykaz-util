@@ -1,7 +1,44 @@
 'use client'
 
 import ExcelJS from 'exceljs'
-import { MonthData, UserSettings } from '@/types'
+import { MonthData, UserSettings, WorkSchedule } from '@/types'
+
+const DEFAULT_START_TIME = '6:00'
+const DEFAULT_WORK_HOURS = 8
+
+/**
+ * Parse time string (e.g., "6:00" or "6.00") to decimal hours
+ */
+function parseTimeToDecimal(time: string): number {
+  const normalized = time.replace('.', ':')
+  const [hours, minutes] = normalized.split(':').map(Number)
+  return hours + (minutes || 0) / 60
+}
+
+/**
+ * Format decimal hours to time string for Excel (e.g., 14.5 -> "14.30")
+ */
+function formatDecimalToTime(decimal: number): string {
+  const hours = Math.floor(decimal)
+  const minutes = Math.round((decimal - hours) * 60)
+  return `${hours}.${minutes.toString().padStart(2, '0')}`
+}
+
+/**
+ * Get schedule for a specific day of week from settings
+ */
+function getScheduleForDay(workSchedule: WorkSchedule | undefined, dayOfWeek: number): { startTime: string; hours: number } {
+  if (!workSchedule) {
+    return { startTime: DEFAULT_START_TIME, hours: DEFAULT_WORK_HOURS }
+  }
+
+  const daySchedule = workSchedule.days[dayOfWeek]
+  if (daySchedule) {
+    return { startTime: daySchedule.startTime, hours: daySchedule.hours }
+  }
+
+  return { startTime: workSchedule.defaultStartTime, hours: workSchedule.defaultHours }
+}
 
 /**
  * Export to Excel using the original template.
@@ -41,6 +78,10 @@ export async function exportToExcel(
     // Skip if row doesn't exist (months with < 31 days handled by template)
     if (row > 38) continue
 
+    // Get schedule for this day of week
+    const schedule = getScheduleForDay(settings.workSchedule, day.dayOfWeek)
+    const startTimeDecimal = parseTimeToDecimal(schedule.startTime)
+
     // Column mapping based on template:
     // A = Day number (already filled)
     // B-D = Pracováno od-do (work time range)
@@ -74,8 +115,10 @@ export async function exportToExcel(
       // For vacation with partial hours
       if (intType === 'D' && day.vacationHours > 0 && day.workedHours > 0) {
         // Partial vacation - still worked some hours
-        sheet.getCell(row, 2).value = '6.00'  // Example start
-        sheet.getCell(row, 4).value = `${6 + day.workedHours}.00`
+        const startTime = formatDecimalToTime(startTimeDecimal)
+        const endTime = formatDecimalToTime(startTimeDecimal + day.workedHours)
+        sheet.getCell(row, 2).value = startTime
+        sheet.getCell(row, 4).value = endTime
         sheet.getCell(row, 8).value = day.workedHours
       }
       continue
@@ -83,10 +126,13 @@ export async function exportToExcel(
 
     // Regular work day
     if (day.workedHours > 0) {
-      // Standard work times (can be customized)
-      sheet.getCell(row, 2).value = '6.00'  // Col B: od
-      const endHour = 6 + day.workedHours + 0.5 // +0.5 for lunch break
-      sheet.getCell(row, 4).value = `${Math.floor(endHour)}.${(endHour % 1) * 60 || '00'}` // Col D: do
+      // Use configured start time
+      const startTime = formatDecimalToTime(startTimeDecimal)
+      const endHour = startTimeDecimal + day.workedHours + 0.5 // +0.5 for lunch break
+      const endTime = formatDecimalToTime(endHour)
+
+      sheet.getCell(row, 2).value = startTime  // Col B: od
+      sheet.getCell(row, 4).value = endTime    // Col D: do
 
       // Total worked hours (Col H)
       sheet.getCell(row, 8).value = day.workedHours
