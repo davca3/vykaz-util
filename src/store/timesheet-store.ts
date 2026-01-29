@@ -62,65 +62,10 @@ export const useTimesheetStore = create<TimesheetState>()(
       currentMonth: null,
       previousMonthsNV: 0,
 
-      setSettings: (newSettings) => {
-        set((state) => {
-          const newState: Partial<TimesheetState> = {
-            settings: { ...state.settings, ...newSettings },
-          }
-
-          // If workSchedule changed and we have a month loaded, update days
-          if (newSettings.workSchedule && state.currentMonth) {
-            const newSchedule = { ...state.settings.workSchedule, ...newSettings.workSchedule }
-            if (newSettings.workSchedule.days) {
-              newSchedule.days = { ...state.settings.workSchedule.days, ...newSettings.workSchedule.days }
-            }
-
-            const updatedDays = state.currentMonth.days.map((day) => {
-              if (day.isWeekend || day.isHoliday) return day
-
-              const daySchedule = newSchedule.days[day.dayOfWeek]
-              if (!daySchedule || !daySchedule.isWorkDay) return day
-
-              const oldScheduledHours = day.scheduledHours
-              const newScheduledHours = daySchedule.hours
-
-              // Only update if hours changed and day wasn't manually modified
-              // (workedHours equals old scheduledHours means it wasn't changed)
-              if (oldScheduledHours !== newScheduledHours && day.workedHours === oldScheduledHours) {
-                const updated = {
-                  ...day,
-                  scheduledHours: newScheduledHours,
-                  startTime: daySchedule.startTime,
-                  workedHours: newScheduledHours,
-                  overtimeHours: 0,
-                }
-                return updated
-              }
-
-              // Update scheduledHours but keep workedHours, recalc overtime
-              if (oldScheduledHours !== newScheduledHours) {
-                return {
-                  ...day,
-                  scheduledHours: newScheduledHours,
-                  startTime: daySchedule.startTime,
-                  overtimeHours: Math.max(0, day.workedHours - newScheduledHours),
-                }
-              }
-
-              return day
-            })
-
-            newState.currentMonth = { ...state.currentMonth, days: updatedDays }
-          }
-
-          return newState
-        })
-
-        // Recalculate totals after schedule change
-        if (newSettings.workSchedule) {
-          get().recalculateTotals()
-        }
-      },
+      setSettings: (newSettings) =>
+        set((state) => ({
+          settings: { ...state.settings, ...newSettings },
+        })),
 
       setPreviousMonthsNV: (hours) =>
         set({ previousMonthsNV: hours }),
