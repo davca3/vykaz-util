@@ -13,7 +13,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { exportToExcel, getFilename } from '@/lib/export'
-import { FileSpreadsheet } from 'lucide-react'
+import { FileSpreadsheet, Send } from 'lucide-react'
+
+const SLACK_DM_URL = 'https://inventmedical.slack.com/team/U02UEA0QX6E'
 
 export function ExportButtons() {
   const { currentMonth, settings, previousMonthsNV, setPreviousMonthsNV } = useTimesheetStore()
@@ -75,10 +77,20 @@ export function ExportButtons() {
         <CardTitle>Export</CardTitle>
       </CardHeader>
       <CardContent>
-        <Button onClick={handleExportXlsx} className="w-full">
-          <FileSpreadsheet className="mr-2 h-4 w-4" />
-          Export XLSX
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleExportXlsx} className="flex-1">
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Export XLSX
+          </Button>
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={() => window.open(SLACK_DM_URL, '_blank')}
+          >
+            <Send className="mr-2 h-4 w-4" />
+            Otevřít Slack od Jany
+          </Button>
+        </div>
       </CardContent>
 
       <Dialog open={showNVPrompt} onOpenChange={setShowNVPrompt}>

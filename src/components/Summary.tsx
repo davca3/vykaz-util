@@ -17,7 +17,7 @@ export function Summary() {
   const nvBalance = previousMonthsNV + overtimeToNV - currentMonth.totalCompensatoryLeaveHours
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Shrnutí hodin</CardTitle>
@@ -75,25 +75,14 @@ export function Summary() {
             <span>- Čerpáno:</span>
             <span className="font-bold text-red-600">-{currentMonth.totalCompensatoryLeaveHours} hod</span>
           </div>
+          <div className="flex justify-between">
+            <span>K proplacení:</span>
+            <span className="font-bold text-blue-600">{currentMonth.totalOvertimeToPayHours} hod</span>
+          </div>
           <div className="flex justify-between border-t pt-2">
             <span>NV zůstatek:</span>
             <span className="font-bold">{nvBalance} hod</span>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Hodiny k proplacení</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span>Přesčas k proplacení:</span>
-            <span className="font-bold">{currentMonth.totalOvertimeToPayHours} hod</span>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Zadejte hodiny k proplacení ve sloupci "K propl." v tabulce výkazu
-          </p>
         </CardContent>
       </Card>
     </div>

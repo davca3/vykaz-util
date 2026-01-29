@@ -68,7 +68,7 @@ export function TimesheetTable() {
                   Odpracované
                 </th>
                 <th colSpan={3} className="p-2 text-center font-bold border border-gray-300 bg-orange-50">
-                  Přesčasy / NV
+                  NV - Náhradní volno
                 </th>
                 <th colSpan={3} className="p-2 text-center font-bold border border-gray-300 bg-green-50">
                   Propustky
@@ -83,10 +83,10 @@ export function TimesheetTable() {
                 {/* Odpracované */}
                 <th className="p-2 text-center border border-gray-300 text-xs bg-blue-50/50">Hodiny</th>
                 <th className="p-2 text-center border border-gray-300 text-xs bg-blue-50/50">Dov.</th>
-                {/* Přesčasy */}
-                <th className="p-2 text-center border border-gray-300 text-xs bg-orange-50/50">Na NV</th>
+                {/* NV - Náhradní volno */}
+                <th className="p-2 text-center border border-gray-300 text-xs bg-orange-50/50">Přesčas</th>
                 <th className="p-2 text-center border border-gray-300 text-xs bg-orange-50/50">K propl.</th>
-                <th className="p-2 text-center border border-gray-300 text-xs bg-orange-50/50">Čerp. NV</th>
+                <th className="p-2 text-center border border-gray-300 text-xs bg-orange-50/50">Čerpání</th>
                 {/* Propustky */}
                 <th className="p-2 text-center border border-gray-300 text-xs bg-green-50/50">Hod.</th>
                 <th className="p-2 text-center border border-gray-300 text-xs bg-green-50/50">Od</th>
@@ -149,7 +149,7 @@ export function TimesheetTable() {
                           })
                         }
                         disabled={isDisabled}
-                        className="w-full min-w-[5rem]"
+                        className="w-full min-w-[4rem]"
                       />
                     </td>
 
@@ -259,7 +259,7 @@ export function TimesheetTable() {
                           })
                         }
                         disabled={isDisabled || day.passHours === 0}
-                        className="min-w-[5rem]"
+                        className="min-w-[4rem]"
                       />
                     </td>
                     <td className="p-1 border border-gray-200 bg-green-50/30">
@@ -272,7 +272,7 @@ export function TimesheetTable() {
                         }
                         disabled={isDisabled || day.passHours === 0}
                         placeholder="Důvod"
-                        className="w-full min-w-[5rem] h-7 text-xs px-1"
+                        className="w-full min-w-[4rem] h-7 text-xs px-1"
                       />
                     </td>
                   </tr>
