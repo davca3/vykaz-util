@@ -5,6 +5,7 @@ import { MonthData, UserSettings } from '@/types'
 import { getWorkingDaysInMonth } from '@/lib/holidays'
 
 const DEFAULT_START_TIME = '6:00'
+const BASE_PATH = process.env.NODE_ENV === 'production' ? '/vykaz-util' : ''
 
 /**
  * Parse time string (e.g., "6:00" or "6.00") to decimal hours
@@ -34,7 +35,7 @@ export async function exportToExcel(
   previousMonthsNV: number
 ): Promise<Blob> {
   // Load the template
-  const response = await fetch('/template.xlsx')
+  const response = await fetch(`${BASE_PATH}/template.xlsx`)
   const arrayBuffer = await response.arrayBuffer()
 
   const workbook = new ExcelJS.Workbook()
