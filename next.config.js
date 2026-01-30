@@ -1,8 +1,10 @@
 /** @type {import('next').NextConfig} */
+const isProd = process.env.NODE_ENV === 'production'
+
 const nextConfig = {
   output: 'export',
-  basePath: '/vykaz-util',
-  assetPrefix: '/vykaz-util',
+  basePath: isProd ? '/vykaz-util' : '',
+  assetPrefix: isProd ? '/vykaz-util' : '',
   images: {
     unoptimized: true,
   },
