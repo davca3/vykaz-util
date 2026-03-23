@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Výkaz práce",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "identifier": "com.vykaz.util",
   "build": {
     "frontendDist": "../out",
@@ -14,6 +14,12 @@
       "desktop": {
         "schemes": ["vykaz"]
       }
+    },
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEUyMjA2Njk5ODAzQzJDQzEKUldUQkxEeUFtV1lnNGhiWGdtemo4MWR0ZnJUbThQUkg0TFlyMWdEa2ZVaXI5bjFvVHc2VDlGdmQK",
+      "endpoints": [
+        "https://github.com/davca3/vykaz-util/releases/latest/download/latest.json"
+      ]
     }
   },
   "app": {

@@ -9,6 +9,7 @@ import { ExportButtons } from '@/components/ExportButtons'
 import { CalendarImport } from '@/components/CalendarImport'
 import { DownloadApp } from '@/components/DownloadApp'
 import { DeepLinkHandler } from '@/components/DeepLinkHandler'
+import { UpdateChecker } from '@/components/UpdateChecker'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export default function Home() {
@@ -20,6 +21,7 @@ export default function Home() {
           Výkaz práce
         </h1>
         <div className="mb-6">
+          <UpdateChecker />
           <DownloadApp />
         </div>
 

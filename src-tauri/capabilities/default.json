@@ -11,6 +11,8 @@
     "core:event:allow-listen",
     "core:event:allow-emit",
     "deep-link:default",
+    "updater:default",
+    "process:default",
     "dialog:default",
     "dialog:allow-save",
     "dialog:allow-open",
