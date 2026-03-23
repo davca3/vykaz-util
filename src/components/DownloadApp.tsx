@@ -76,7 +76,7 @@ export function DownloadApp() {
           </DialogHeader>
           <div className="py-3">
             <code className="block bg-gray-100 rounded-md px-4 py-3 text-sm font-mono select-all">
-              xattr -cr &quot;/Applications/Výkaz práce.app&quot;
+              xattr -cr &quot;/Applications/Vykaz.app&quot;
             </code>
             <p className="text-xs text-muted-foreground mt-2">
               Poté aplikaci otevřete normálně. Toto je potřeba udělat pouze jednou.
