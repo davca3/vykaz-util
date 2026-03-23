@@ -27,6 +27,25 @@ mod macos {
         calendar.dateFromComponents(&components)
     }
 
+    fn days_in_month(year: i32, month: i32) -> u32 {
+        let next_month = if month == 12 { 1 } else { month + 1 };
+        let next_year = if month == 12 { year + 1 } else { year };
+        // Day 0 of next month = last day of current month
+        let calendar = NSCalendar::currentCalendar();
+        let components = NSDateComponents::new();
+        components.setYear(next_year as isize);
+        components.setMonth(next_month as isize);
+        components.setDay(0);
+        if let Some(date) = calendar.dateFromComponents(&components) {
+            let day_components = calendar.componentsInTimeZone_fromDate(
+                &NSTimeZone::localTimeZone(),
+                &date,
+            );
+            return day_components.day() as u32;
+        }
+        31
+    }
+
     pub fn request_access() -> Result<bool, String> {
         let store = unsafe { EKEventStore::new() };
         let (tx, rx) = mpsc::channel();
@@ -35,7 +54,6 @@ mod macos {
             let _ = tx.send(granted.as_bool());
         });
 
-        // Convert RcBlock to raw pointer for the API
         let block_ptr: *mut block2::DynBlock<dyn Fn(Bool, *mut NSError)> =
             &*block as *const _ as *mut _;
 
@@ -75,6 +93,7 @@ mod macos {
         let mut result = Vec::new();
         let calendar = NSCalendar::currentCalendar();
         let timezone = NSTimeZone::localTimeZone();
+        let max_day = days_in_month(year, month);
 
         for event in events.iter() {
             let is_all_day = unsafe { event.isAllDay() };
@@ -93,21 +112,30 @@ mod macos {
 
             let event_start: Retained<NSDate> = unsafe { event.startDate() };
             let start_components = calendar.componentsInTimeZone_fromDate(&timezone, &event_start);
-            let day = start_components.day() as u32;
+            let start_day = start_components.day() as u32;
+            let start_month = start_components.month() as i32;
 
             let event_end: Retained<NSDate> = unsafe { event.endDate() };
             let end_components = calendar.componentsInTimeZone_fromDate(&timezone, &event_end);
             let end_day = end_components.day() as u32;
             let end_month = end_components.month() as i32;
 
-            // For multi-day all-day events, end date is day after last day
-            let last_day = if end_month != month {
-                31
+            // Determine the range of days within the requested month
+            // Event may start before this month or end after it
+            let first_day = if start_month == month {
+                start_day
             } else {
-                end_day.saturating_sub(1).max(day)
+                1 // Event started before this month
             };
 
-            for d in day..=last_day {
+            let last_day = if end_month == month {
+                // All-day events have end date = day after last day
+                end_day.saturating_sub(1).max(first_day)
+            } else {
+                max_day // Event extends beyond this month
+            };
+
+            for d in first_day..=last_day.min(max_day) {
                 if !result.iter().any(|e: &CalendarEvent| e.day == d) {
                     result.push(CalendarEvent {
                         day: d,
