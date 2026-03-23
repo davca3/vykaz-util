@@ -23,7 +23,18 @@ export function MonthSelector() {
 
   useEffect(() => {
     if (!currentMonth) {
-      initializeMonth(now.getFullYear(), now.getMonth() + 1)
+      // Before 15th show previous month, from 15th show current month
+      if (now.getDate() < 15) {
+        let month = now.getMonth() // previous month (0-indexed, so getMonth() without +1)
+        let year = now.getFullYear()
+        if (month < 1) {
+          month = 12
+          year--
+        }
+        initializeMonth(year, month)
+      } else {
+        initializeMonth(now.getFullYear(), now.getMonth() + 1)
+      }
     }
   }, [])
 
