@@ -1,10 +1,11 @@
 /** @type {import('next').NextConfig} */
 const isProd = process.env.NODE_ENV === 'production'
+const isTauri = process.env.TAURI_BUILD === '1'
 
 const nextConfig = {
   output: 'export',
-  basePath: isProd ? '/vykaz-util' : '',
-  assetPrefix: isProd ? '/vykaz-util' : '',
+  basePath: isTauri ? '' : (isProd ? '/vykaz-util' : ''),
+  assetPrefix: isTauri ? '' : (isProd ? '/vykaz-util' : ''),
   images: {
     unoptimized: true,
   },

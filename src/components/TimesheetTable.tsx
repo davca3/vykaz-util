@@ -149,7 +149,7 @@ export function TimesheetTable() {
                           })
                         }
                         disabled={isDisabled}
-                        className="w-full min-w-[4rem]"
+                        className="w-full min-w-[3rem]"
                       />
                     </td>
 

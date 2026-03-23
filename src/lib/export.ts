@@ -5,7 +5,11 @@ import { MonthData, UserSettings } from '@/types'
 import { getWorkingDaysInMonth } from '@/lib/holidays'
 
 const DEFAULT_START_TIME = '6:00'
-const BASE_PATH = process.env.NODE_ENV === 'production' ? '/vykaz-util' : ''
+
+function getBasePath(): string {
+  if (typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window) return ''
+  return process.env.NODE_ENV === 'production' ? '/vykaz-util' : ''
+}
 
 /**
  * Parse time string (e.g., "6:00" or "6.00") to decimal hours
@@ -35,11 +39,14 @@ export async function exportToExcel(
   previousMonthsNV: number
 ): Promise<Blob> {
   // Load the template
-  const response = await fetch(`${BASE_PATH}/template.xlsx`)
+  const response = await fetch(`${getBasePath()}/template.xlsx`)
   const arrayBuffer = await response.arrayBuffer()
 
   const workbook = new ExcelJS.Workbook()
   await workbook.xlsx.load(arrayBuffer)
+
+  // Force Excel/LibreOffice to recalculate all formulas when opening
+  workbook.calcProperties = { fullCalcOnLoad: true }
 
   const sheet = workbook.worksheets[0]
 
@@ -170,8 +177,30 @@ export async function exportToExcel(
     }
   }
 
+  // Fix shared formulas: ExcelJS writes each shared formula cell with its own
+  // ref pointing to itself, which breaks Excel/LibreOffice formula evaluation.
+  // Convert all shared/array formulas to plain formulas.
+  fixSharedFormulas(sheet)
+
   const buffer = await workbook.xlsx.writeBuffer()
   return new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+}
+
+/**
+ * Convert shared/array formulas to plain formulas so Excel/LibreOffice
+ * can evaluate them correctly. ExcelJS mishandles shared formula refs.
+ */
+function fixSharedFormulas(sheet: ExcelJS.Worksheet) {
+  sheet.eachRow((row, rowNumber) => {
+    row.eachCell((cell) => {
+      const val = cell.value as Record<string, unknown> | null
+      if (val && typeof val === 'object' && 'formula' in val) {
+        const formula = val.formula as string
+        // Replace the complex shared formula object with a plain formula
+        cell.value = { formula, result: undefined } as unknown as ExcelJS.CellValue
+      }
+    })
+  })
 }
 
 export function getFilename(settings: UserSettings, monthData: MonthData, extension: string): string {
