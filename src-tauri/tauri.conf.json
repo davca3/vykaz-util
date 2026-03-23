@@ -9,6 +9,13 @@
     "beforeDevCommand": "npm run dev -- --port 3007",
     "beforeBuildCommand": "npm run build:tauri"
   },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": ["vykaz"]
+      }
+    }
+  },
   "app": {
     "windows": [
       {

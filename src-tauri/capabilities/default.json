@@ -7,6 +7,10 @@
   ],
   "permissions": [
     "core:default",
+    "core:event:default",
+    "core:event:allow-listen",
+    "core:event:allow-emit",
+    "deep-link:default",
     "dialog:default",
     "dialog:allow-save",
     "dialog:allow-open",

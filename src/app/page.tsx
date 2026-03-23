@@ -8,11 +8,13 @@ import { Summary } from '@/components/Summary'
 import { ExportButtons } from '@/components/ExportButtons'
 import { CalendarImport } from '@/components/CalendarImport'
 import { DownloadApp } from '@/components/DownloadApp'
+import { DeepLinkHandler } from '@/components/DeepLinkHandler'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50">
+      <DeepLinkHandler />
       <div className="container mx-auto py-6 px-4">
         <h1 className="text-3xl font-bold text-center mb-4">
           Výkaz práce
