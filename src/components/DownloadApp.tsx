@@ -62,7 +62,7 @@ export function DownloadApp() {
           onClick={handleTransfer}
         >
           <Share2 className="mr-1 h-3 w-3" />
-          Přenést do appky
+          Přenést nastavení z webu do appky
         </Button>
       </div>
 
