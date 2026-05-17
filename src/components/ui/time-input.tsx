@@ -78,7 +78,7 @@ export function TimeInput({
   return (
     <div
       className={cn(
-        'flex items-center h-7 border rounded bg-background text-xs',
+        'flex items-center justify-center h-7 border rounded bg-background text-xs',
         disabled && 'opacity-50 cursor-not-allowed',
         className
       )}
