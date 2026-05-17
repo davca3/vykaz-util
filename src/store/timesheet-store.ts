@@ -175,18 +175,32 @@ export const useTimesheetStore = create<TimesheetState>()(
                 if (updates.workedHours === undefined) {
                   updated.workedHours = standardHours
                 }
-                // Reset vacation and NV hours when clearing interruption
-                updated.vacationHours = 0
-                updated.compensatoryLeaveHours = 0
+                // Reset vacation/NV unless explicitly provided in the same update
+                if (updates.vacationHours === undefined) {
+                  updated.vacationHours = 0
+                }
+                if (updates.compensatoryLeaveHours === undefined) {
+                  updated.compensatoryLeaveHours = 0
+                }
               }
 
               // Reset vacation hours when changing from vacation to another type
-              if (updates.interruptionType !== undefined && updates.interruptionType !== 'D' && day.interruptionType === 'D') {
+              if (
+                updates.interruptionType !== undefined &&
+                updates.interruptionType !== 'D' &&
+                day.interruptionType === 'D' &&
+                updates.vacationHours === undefined
+              ) {
                 updated.vacationHours = 0
               }
 
               // Reset compensatory leave hours when changing from NV to another type
-              if (updates.interruptionType !== undefined && updates.interruptionType !== 'NV' && day.interruptionType === 'NV') {
+              if (
+                updates.interruptionType !== undefined &&
+                updates.interruptionType !== 'NV' &&
+                day.interruptionType === 'NV' &&
+                updates.compensatoryLeaveHours === undefined
+              ) {
                 updated.compensatoryLeaveHours = 0
               }
 

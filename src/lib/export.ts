@@ -112,14 +112,21 @@ export async function exportToExcel(
         sheet.getCell(row, 4).value = endTime
         sheet.getCell(row, 8).value = day.workedHours
       }
+
+      // Full-day NV: write compensatory leave hours to Col I
+      if (intType === 'NV' && day.compensatoryLeaveHours > 0) {
+        sheet.getCell(row, 9).value = day.compensatoryLeaveHours
+      }
       continue
     }
 
-    // Regular work day
+    // Regular work day (also covers partial NV: typ pole zůstává prázdné, jen čerpání)
     if (day.workedHours > 0) {
       // Use configured start time
       const startTime = formatDecimalToTime(startTimeDecimal)
-      const endHour = startTimeDecimal + day.workedHours + 0.5 // +0.5 for lunch break
+      // Skip the 0.5h lunch break for partial absences (compensatory leave)
+      const lunchBreak = day.compensatoryLeaveHours > 0 ? 0 : 0.5
+      const endHour = startTimeDecimal + day.workedHours + lunchBreak
       const endTime = formatDecimalToTime(endHour)
 
       sheet.getCell(row, 2).value = startTime  // Col B: od
