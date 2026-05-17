@@ -9,8 +9,9 @@
     "start": "next start",
     "lint": "next lint",
     "tauri": "tauri",
-    "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build"
+    "tauri:dev": "tauri dev --config src-tauri/tauri.dev.conf.json",
+    "tauri:build": "tauri build",
+    "tauri:build:dev": "tauri build --config src-tauri/tauri.dev.conf.json"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.0.4",

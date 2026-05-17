@@ -1,0 +1,21 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "Vykaz Dev",
+  "identifier": "com.vykaz.util.dev",
+  "app": {
+    "windows": [
+      {
+        "title": "Výkaz práce (Dev)"
+      }
+    ]
+  },
+  "bundle": {
+    "createUpdaterArtifacts": false
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [],
+      "pubkey": ""
+    }
+  }
+}
