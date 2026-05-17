@@ -10,6 +10,7 @@ import { CalendarImport } from '@/components/CalendarImport'
 import { DownloadApp } from '@/components/DownloadApp'
 import { DeepLinkHandler } from '@/components/DeepLinkHandler'
 import { UpdateChecker } from '@/components/UpdateChecker'
+import { ReleaseNotes } from '@/components/ReleaseNotes'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export default function Home() {
@@ -17,9 +18,14 @@ export default function Home() {
     <main className="min-h-screen bg-gray-50">
       <DeepLinkHandler />
       <div className="container mx-auto py-6 px-4">
-        <h1 className="text-3xl font-bold text-center mb-4">
-          Výkaz práce
-        </h1>
+        <div className="relative mb-4">
+          <h1 className="text-3xl font-bold text-center">
+            Výkaz práce
+          </h1>
+          <div className="absolute right-0 top-0">
+            <ReleaseNotes />
+          </div>
+        </div>
         <div className="mb-6">
           <UpdateChecker />
           <DownloadApp />
