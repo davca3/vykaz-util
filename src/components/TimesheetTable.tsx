@@ -50,6 +50,10 @@ export function TimesheetTable() {
     )
   }
 
+  const showPasses = currentMonth.days.some(
+    d => d.passHours > 0 || d.interruptionType === 'P'
+  )
+
   return (
     <Card>
       <CardHeader>
@@ -70,9 +74,11 @@ export function TimesheetTable() {
                 <th colSpan={3} className="p-2 text-center font-bold border border-gray-300 bg-orange-50">
                   NV - Náhradní volno
                 </th>
-                <th colSpan={3} className="p-2 text-center font-bold border border-gray-300 bg-green-50">
-                  Propustky
-                </th>
+                {showPasses && (
+                  <th colSpan={3} className="p-2 text-center font-bold border border-gray-300 bg-green-50">
+                    Propustky
+                  </th>
+                )}
               </tr>
               {/* Column headers */}
               <tr className="bg-muted/50">
@@ -87,10 +93,13 @@ export function TimesheetTable() {
                 <th className="p-2 text-center border border-gray-300 text-xs bg-orange-50/50">Přesčas</th>
                 <th className="p-2 text-center border border-gray-300 text-xs bg-orange-50/50">K propl.</th>
                 <th className="p-2 text-center border border-gray-300 text-xs bg-orange-50/50">Čerpání</th>
-                {/* Propustky */}
-                <th className="p-2 text-center border border-gray-300 text-xs bg-green-50/50">Hod.</th>
-                <th className="p-2 text-center border border-gray-300 text-xs bg-green-50/50">Od</th>
-                <th className="p-2 text-left border border-gray-300 text-xs bg-green-50/50">Důvod</th>
+                {showPasses && (
+                  <>
+                    <th className="p-2 text-center border border-gray-300 text-xs bg-green-50/50">Hod.</th>
+                    <th className="p-2 text-center border border-gray-300 text-xs bg-green-50/50">Od</th>
+                    <th className="p-2 text-left border border-gray-300 text-xs bg-green-50/50">Důvod</th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -233,48 +242,52 @@ export function TimesheetTable() {
                       />
                     </td>
 
-                    {/* Propustky - zelená */}
-                    <td className="p-1 border border-gray-200 bg-green-50/30">
-                      <Input
-                        type="number"
-                        min="0"
-                        max="24"
-                        step="0.5"
-                        value={day.passHours || ''}
-                        onChange={(e) =>
-                          updateDayEntry(day.dayOfMonth, {
-                            passHours: parseFloat(e.target.value) || 0,
-                          })
-                        }
-                        disabled={isDisabled}
-                        className="w-full min-w-[3.5rem] h-7 text-center text-xs px-1"
-                      />
-                    </td>
-                    <td className="p-1 border border-gray-200 bg-green-50/30">
-                      <TimeInput
-                        value={day.passFrom || ''}
-                        onChange={(value) =>
-                          updateDayEntry(day.dayOfMonth, {
-                            passFrom: value,
-                          })
-                        }
-                        disabled={isDisabled || day.passHours === 0}
-                        className="min-w-[4rem]"
-                      />
-                    </td>
-                    <td className="p-1 border border-gray-200 bg-green-50/30">
-                      <Input
-                        value={day.passReason || ''}
-                        onChange={(e) =>
-                          updateDayEntry(day.dayOfMonth, {
-                            passReason: e.target.value,
-                          })
-                        }
-                        disabled={isDisabled || day.passHours === 0}
-                        placeholder="Důvod"
-                        className="w-full min-w-[4rem] h-7 text-xs px-1"
-                      />
-                    </td>
+                    {/* Propustky - zelená (skryté když nejsou žádné) */}
+                    {showPasses && (
+                      <>
+                        <td className="p-1 border border-gray-200 bg-green-50/30">
+                          <Input
+                            type="number"
+                            min="0"
+                            max="24"
+                            step="0.5"
+                            value={day.passHours || ''}
+                            onChange={(e) =>
+                              updateDayEntry(day.dayOfMonth, {
+                                passHours: parseFloat(e.target.value) || 0,
+                              })
+                            }
+                            disabled={isDisabled}
+                            className="w-full min-w-[3.5rem] h-7 text-center text-xs px-1"
+                          />
+                        </td>
+                        <td className="p-1 border border-gray-200 bg-green-50/30">
+                          <TimeInput
+                            value={day.passFrom || ''}
+                            onChange={(value) =>
+                              updateDayEntry(day.dayOfMonth, {
+                                passFrom: value,
+                              })
+                            }
+                            disabled={isDisabled || day.passHours === 0}
+                            className="min-w-[4rem]"
+                          />
+                        </td>
+                        <td className="p-1 border border-gray-200 bg-green-50/30">
+                          <Input
+                            value={day.passReason || ''}
+                            onChange={(e) =>
+                              updateDayEntry(day.dayOfMonth, {
+                                passReason: e.target.value,
+                              })
+                            }
+                            disabled={isDisabled || day.passHours === 0}
+                            placeholder="Důvod"
+                            className="w-full min-w-[4rem] h-7 text-xs px-1"
+                          />
+                        </td>
+                      </>
+                    )}
                   </tr>
                 )
               })}
