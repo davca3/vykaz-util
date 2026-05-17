@@ -21,11 +21,8 @@ const INTERRUPTION_TYPES: { value: string; label: string }[] = [
   { value: 'Sv', label: 'Sv - Svátek' },
   { value: 'D', label: 'D - Dovolená' },
   { value: 'N', label: 'N - Nemocenská' },
-  { value: 'Oš', label: 'Oš - Ošetřování' },
   { value: 'NV', label: 'NV - Náhradní volno' },
   { value: 'P', label: 'P - Překážky (lékař...)' },
-  { value: 'M', label: 'M - Mateřství' },
-  { value: 'RD', label: 'RD - Rodičovská' },
   { value: 'NP', label: 'NP - Neplacené volno' },
 ]
 

@@ -3,11 +3,8 @@ export type InterruptionType =
   | 'Sv'  // Svátek
   | 'D'   // Dovolená
   | 'N'   // Nemocenská
-  | 'Oš'  // Ošetřování člena rodiny
   | 'NV'  // Náhradní volno celý den
   | 'P'   // Překážky v práci (lékař, dárcovství krve, svatba…)
-  | 'M'   // Peněžní pomoc v mateřství
-  | 'RD'  // Rodičovská dovolená
   | 'NP'  // Neplacené volno
   | ''    // Regular work day
 

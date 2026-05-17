@@ -157,7 +157,7 @@ export const useTimesheetStore = create<TimesheetState>()(
               // If interruption type is set (not regular work), adjust worked hours
               if (updates.interruptionType !== undefined && updates.interruptionType !== '') {
                 // For full day interruptions
-                if (['D', 'N', 'Oš', 'M', 'RD', 'NP', 'Sv', 'NV'].includes(updates.interruptionType)) {
+                if (['D', 'N', 'NP', 'Sv', 'NV'].includes(updates.interruptionType)) {
                   if (updates.workedHours === undefined) {
                     updated.workedHours = 0
                   }
