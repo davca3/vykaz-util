@@ -13,6 +13,8 @@
     "deep-link:default",
     "updater:default",
     "process:default",
+    "opener:default",
+    "opener:allow-open-url",
     "dialog:default",
     "dialog:allow-save",
     "dialog:allow-open",

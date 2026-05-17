@@ -16,6 +16,7 @@ import { exportToExcel, getFilename } from '@/lib/export'
 import { FileSpreadsheet, FileText, Send } from 'lucide-react'
 import { usePlatform } from '@/hooks/usePlatform'
 import { invokeTauri } from '@/lib/tauri'
+import { openExternal } from '@/lib/openExternal'
 
 const SLACK_DM_URL = 'https://inventmedical.slack.com/team/U02UEA0QX6E'
 
@@ -151,7 +152,7 @@ export function ExportButtons() {
           <Button
             variant="outline"
             className="flex-1"
-            onClick={() => window.open(SLACK_DM_URL, '_blank')}
+            onClick={() => openExternal(SLACK_DM_URL)}
           >
             <Send className="mr-2 h-4 w-4" />
             Otevřít Slack od Jany
